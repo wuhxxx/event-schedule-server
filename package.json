@@ -18,5 +18,18 @@
   "bugs": {
     "url": "https://github.com/wuhxxx/weekly-scheduler-server/issues"
   },
-  "homepage": "https://github.com/wuhxxx/weekly-scheduler-server#readme"
+  "homepage": "https://github.com/wuhxxx/weekly-scheduler-server#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "jsonwebtoken": "^8.3.0",
+    "mongoose": "^5.2.10",
+    "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.4.0",
+    "nodemon": "^1.18.4"
+  }
 }
