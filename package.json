@@ -1,0 +1,22 @@
+{
+  "name": "weekly-scheduler-server",
+  "version": "1.0.0",
+  "description": "The backend of weekly-scheduler.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wuhxxx/weekly-scheduler-server.git"
+  },
+  "keywords": [
+    "nodejs"
+  ],
+  "author": "Hongxin Wu (github.com/wuhxxx)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wuhxxx/weekly-scheduler-server/issues"
+  },
+  "homepage": "https://github.com/wuhxxx/weekly-scheduler-server#readme"
+}
