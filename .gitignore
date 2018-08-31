@@ -4,5 +4,8 @@ node_modules
 # package.json lock file
 package-lock.json
 
-#eslint style sheet
+# eslint style sheet
 .eslintrc.json
+
+# Hide my mLab cloud mongoDB database user name and password
+config/mLabCredential.js
