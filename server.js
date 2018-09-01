@@ -3,8 +3,10 @@ const express = require("express"),
     bodyParser = require("body-parser"),
     mongoose = require("mongoose");
 
-// Define the port to listen
-const PORT = 3000;
+// Set the port to listen
+// By default, listen on port 3000 in local machine
+// Or process.env.PORT when deployed to cloud
+const PORT = process.env.PORT || 3000;
 
 // Initiate app and use bodypaser middleware
 const app = express();
