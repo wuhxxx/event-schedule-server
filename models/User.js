@@ -1,5 +1,6 @@
 // Bring in mongoose
-const mongoose = require("mongoose");
+const mongoose = require("mongoose"),
+    Schema = mongoose.Schema;
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -21,7 +22,15 @@ const UserSchema = new mongoose.Schema({
         // Register date
         type: Date,
         default: Date.now
-    }
+    },
+    // User's events
+    events: [
+        {
+            // Reference to Event
+            type: Schema.Types.ObjectId,
+            ref: "Event"
+        }
+    ]
 });
 
 // Exports "User" model
