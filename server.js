@@ -1,15 +1,19 @@
-// Bring in express, body parser and mongoose
+// Bring in express, body parser, mongoose and passport authenticator
 const express = require("express"),
     bodyParser = require("body-parser"),
-    mongoose = require("mongoose");
+    mongoose = require("mongoose"),
+    auth = require("./auth/auth.js");
 
 // Bring in server config
-const config = require("./config/serverConfig");
+const config = require("./config/serverConfig.js");
 
-// Initiate app and use bodypaser middleware
+// Bring in routes
+
+// Initiate app and use body-parser and passport auth middlewares
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(auth.initialize());
 
 // Connect to MongoDB
 mongoose

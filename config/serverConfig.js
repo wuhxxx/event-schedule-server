@@ -6,8 +6,15 @@ module.exports = {
     // mongoDB URL
     mongoDBURL: keys.mongoDBURL,
 
-    // JWT secret
-    JWTSecretKey: keys.JWTSecretKey,
+    // JWT secretOrKey
+    JWTSecretOrKey: keys.JWTSecretKey,
+
+    // Options for passport-jwt authentication
+    jwtAuthOptions: {
+        // more options :
+        // http://www.passportjs.org/docs/authenticate/
+        session: false
+    },
 
     // port to listen on
     PORT: process.env.PORT || 3000,

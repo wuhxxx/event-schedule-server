@@ -6,11 +6,17 @@ const UserSchema = new mongoose.Schema({
     name: {
         // User name
         type: String,
-        required: true
+        required: true,
+        trim: true,
+        // User name must be 2-12 long,
+        // no leading space or "."
+        // no ending space or "."
+        match: /^(?=.{2,12}$)(?![.\s])[a-zA-Z0-9._\s]+(?<![.\s])$/
     },
     email: {
         // User email
         type: String,
+        unique: true, // should be unique
         required: true
     },
     password: {
