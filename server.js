@@ -1,3 +1,6 @@
+// Load environment variables
+require("dotenv").config();
+
 // Bring in express, body parser, mongoose and passport authenticator
 const express = require("express"),
     bodyParser = require("body-parser"),

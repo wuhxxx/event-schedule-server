@@ -15,6 +15,7 @@ const options = {
     secretOrKey: config.JWTSecretOrKey
 };
 
+// Expoese the jwt strategy
 module.exports = new JwtStrategy(options, (jwt_payload, done) => {
     User.findOne({ id: jwt_payload.id }, (err, user) => {
         if (err) {

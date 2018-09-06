@@ -1,24 +1,22 @@
-// Import credential
-// Node: My credential will not be uploaded to github, you should provide your credential(see credential.js)
-const keys = require("./keys.js");
-
+// Expose server config
 module.exports = {
     // mongoDB URL
-    mongoDBURL: keys.mongoDBURL,
+    mongoDBURL:
+        process.env.MONGODBURL ||
+        "mongodb://localhost:27017/weekly-scheduler-server",
 
     // JWT secretOrKey
-    JWTSecretOrKey: keys.JWTSecretKey,
+    JWTSecretOrKey: process.env.JWTSECRETORKEY || "secret",
 
     // Options for passport-jwt authentication
     jwtAuthOptions: {
-        // more options :
-        // http://www.passportjs.org/docs/authenticate/
+        // more options : http://www.passportjs.org/docs/authenticate/
         session: false
     },
 
     // port to listen on
     PORT: process.env.PORT || 3000,
 
-    // token expires time, 1 week
-    tokenExpiresTime: 1000 * 60 * 60 * 24 * 7
+    // token expires after 1 week (unit: milesecond)
+    tokenExpiresIn: 1000 * 60 * 60 * 24 * 7
 };

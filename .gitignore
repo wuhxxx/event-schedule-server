@@ -7,5 +7,5 @@ package-lock.json
 # eslint style sheet
 .eslintrc.json
 
-# mongoDBURL and JWTSecretKey
-config/keys.js
+# Environment variables
+.env
