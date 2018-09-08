@@ -17,14 +17,17 @@ const options = {
 
 // Expoese the jwt strategy
 module.exports = new JwtStrategy(options, (jwt_payload, done) => {
-    User.findOne({ id: jwt_payload.id }, (err, user) => {
-        if (err) {
+    User.findOne({ id: jwt_payload.id })
+        .then(user => {
+            if (user) {
+                return done(null, user);
+            } else {
+                return done(null, false);
+            }
+        })
+        .catch(err => {
+            // TODO: use logger
+            console.log(err);
             return done(err, false);
-        }
-        if (user) {
-            return done(null, user);
-        } else {
-            return done(null, false);
-        }
-    });
+        });
 });
