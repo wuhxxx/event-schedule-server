@@ -20,6 +20,7 @@ app.use(bodyParser.json());
 app.use(auth.initialize());
 
 // Connect to MongoDB
+mongoose.set("useCreateIndex", true); // get rid of collection.ensureIndex DeprecationWarning
 mongoose
     .connect(
         config.mongoDBURL,
