@@ -4,13 +4,14 @@ const express = require("express"),
     jwt = require("jsonwebtoken"),
     config = require("../config/serverConfig");
 
-// Load User model
-const User = require("../models/User.js");
+// Load User and Event model
+const User = require("../models/User.js"),
+    Event = require("../models/Event.js");
 
 // Load joi validator and validation schema
 const Joi = require("joi"),
-    newUserSchema = require("./validation/newUserSchema.js"),
-    loginSchema = require("./validation/loginSchema.js");
+    newUserSchema = require("../validation/newUserSchema.js"),
+    loginSchema = require("../validation/loginSchema.js");
 
 // server error sender
 const serverError = (res, error, errorType) => {
@@ -30,9 +31,9 @@ const router = express.Router();
 
 /**
  * The register route
- * @method   POST
- * @URI      user/register
- * @access   Public
+ * @method     POST
+ * @endpoint   user/register
+ * @access     Public
  */
 router.post("/register", (req, res) => {
     // "name", "email" and "password" are required for registration
@@ -99,9 +100,9 @@ router.post("/register", (req, res) => {
 
 /**
  * The login route
- * @method   POST
- * @URI      user/login
- * @access   Public
+ * @method     POST
+ * @endpoint   user/login
+ * @access     Public
  */
 router.post("/login", (req, res) => {
     // if login succeeds, send jwt token and user's events
@@ -120,6 +121,7 @@ router.post("/login", (req, res) => {
 
     // input is valid, check if the email exists in database
     User.findOne({ email: req.body.email })
+        .populate("events")
         .then(user => {
             if (user) {
                 // user exists, check password
@@ -143,7 +145,8 @@ router.post("/login", (req, res) => {
                                 (err, token) => {
                                     res.json({
                                         success: true,
-                                        token: "Bearer " + token
+                                        token: "Bearer " + token,
+                                        events: user.events
                                     });
                                 }
                             );
