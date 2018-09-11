@@ -11,7 +11,8 @@ const express = require("express"),
 const config = require("./config/serverConfig.js");
 
 // Bring in routes
-const userRoutes = require("./routes/user.js");
+const userRouter = require("./routes/user.js"),
+    eventRouter = require("./routes/event.js");
 
 // Initiate app and use body-parser and passport auth middlewares
 const app = express();
@@ -30,7 +31,10 @@ mongoose
     .catch(err => console.log(err));
 
 // Use routes
-app.use("/user", userRoutes);
+app.use("/user", userRouter);
+app.use("/event", eventRouter);
+
+//app.all("*", (req, res) => {});
 
 // Start server and listen on the specific port
 app.listen(config.PORT, () => {

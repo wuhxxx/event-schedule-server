@@ -3,16 +3,20 @@ const mongoose = require("mongoose");
 
 const EventSchema = new mongoose.Schema({
     title: {
-        // The event's title, required
+        // event's title, required
         type: String,
         required: true
     },
-    detail: {
-        // The event's detail, not required
+    location: {
+        // event's location
         type: String
     },
-    startTime: {
-        // The event's start time,
+    description: {
+        // event's description
+        type: String
+    },
+    startAt: {
+        // event's start time,
         // store as a number of minutes,
         // value range [0, 1440], 1440 = 24 hour * 60 minute
         // startTime must less than endTime
@@ -21,8 +25,8 @@ const EventSchema = new mongoose.Schema({
         max: 1440,
         required: true
     },
-    endTime: {
-        // The event's end time,
+    endAt: {
+        // event's end time,
         // store as a number of minutes,
         // value range [0, 1440], 1440 = 24 hour * 60 minute
         // endTime must larger than startTime
@@ -32,7 +36,7 @@ const EventSchema = new mongoose.Schema({
         required: true
     },
     dayOfWeek: {
-        // The event's day of week,
+        // event's day of week,
         // range [1,7], Monday to Sunday
         type: Number,
         min: 1,
@@ -40,7 +44,7 @@ const EventSchema = new mongoose.Schema({
         required: true
     },
     createDate: {
-        // The date of this event being created
+        // date of this event being created
         type: Date,
         default: Date.now
     }

@@ -17,9 +17,12 @@ const options = {
 
 // Expoese the jwt strategy
 module.exports = new JwtStrategy(options, (jwt_payload, done) => {
-    User.findOne({ id: jwt_payload.id })
+    // fix: findOne -> findById
+    User.findById(jwt_payload.id)
         .then(user => {
             if (user) {
+                // user will be attached to req
+                // access by req.user
                 return done(null, user);
             } else {
                 return done(null, false);
