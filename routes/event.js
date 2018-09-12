@@ -103,7 +103,7 @@ router.post("/delete", auth.jwtAuth(), async (req, res) => {
         });
 
         // delete events in database
-        //await Event.deleteMany({});
+        await Event.deleteMany({ _id: { $in: req.body.eventIds } });
 
         // response
         return res.status(200).json({ success: "Events deleted." });
