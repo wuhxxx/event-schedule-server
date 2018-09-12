@@ -10,8 +10,8 @@ const User = require("../models/User.js"),
 
 // Load joi validator and validation schema
 const Joi = require("joi"),
-    newUserSchema = require("../validation/newUserSchema.js"),
-    loginSchema = require("../validation/loginSchema.js");
+    newUserSchema = require("../validation/newUser"),
+    loginSchema = require("../validation/login");
 
 // server error sender
 const serverError = (res, error, errorType) => {

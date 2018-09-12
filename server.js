@@ -22,6 +22,7 @@ app.use(auth.initialize());
 
 // Connect to MongoDB
 mongoose.set("useCreateIndex", true); // get rid of collection.ensureIndex DeprecationWarning
+mongoose.set("useFindAndModify", false); // get rid of collection.findAndModify DeprecationWarning
 mongoose
     .connect(
         config.mongoDBURL,

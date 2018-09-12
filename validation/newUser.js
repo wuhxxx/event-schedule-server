@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-const userSchema = Joi.object().keys({
+module.exports = Joi.object().keys({
     name: Joi.string()
         .required()
         .regex(/^(?=.{2,12}$)(?![.\s])[a-zA-Z0-9._\s]+(?<![.\s])$/),
@@ -11,5 +11,3 @@ const userSchema = Joi.object().keys({
         .required()
         .regex(/^[a-zA-Z0-9!@#$%^&]{4,30}$/)
 });
-
-module.exports = userSchema;

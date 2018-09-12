@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-const newEventSchema = Joi.object().keys({
+module.exports = Joi.object().keys({
     title: Joi.string().required(),
     location: Joi.string(),
     description: Joi.string(),
@@ -18,5 +18,3 @@ const newEventSchema = Joi.object().keys({
         .max(7)
         .required()
 });
-
-module.exports = newEventSchema;

@@ -9,7 +9,8 @@ const User = require("../models/User.js"),
 
 // Load joi validator and validation schema
 const Joi = require("joi"),
-    newEventSchema = require("../validation/newEventSchema.js");
+    newEventSchema = require("../validation/newEvent.js"),
+    removeEventSchema = require("../validation/removeEvent.js");
 
 // express router
 const router = express.Router();
@@ -28,7 +29,7 @@ router.get("/all", auth.jwtAuth(), async (req, res) => {
             "-createDate -__v"
         );
 
-        res.status(200).json(userDoc.events);
+        return res.status(200).json(userDoc.events);
     } catch (error) {
         // log error
         console.log(error);
@@ -60,12 +61,12 @@ router.post("/add", auth.jwtAuth(), async (req, res) => {
         );
 
         // response
-        res.status(200).json({
+        return res.status(200).json({
             success: "New event successfully added.",
             event_id: event.id
         });
     } catch (error) {
-        // log error console.log(error);
+        // validation error
         if (error.isJoi)
             return res
                 .status(400)
@@ -85,12 +86,44 @@ router.post("/add", auth.jwtAuth(), async (req, res) => {
  */
 
 /**
- * Remove events
+ * delete events
  * @method     POST
- * @endpoint   event/remove
+ * @endpoint   event/delete
  * @access     Private
  */
-//router.post("/remove", async (req, res) => {});
+router.post("/delete", auth.jwtAuth(), async (req, res) => {
+    try {
+        // validation
+        await Joi.validate(req.body, removeEventSchema);
+        //console.log(Array.isArray(req.body.eventIds)); // true
+
+        // find corresponding user and remove events' id
+        await User.findByIdAndUpdate(req.user._id, {
+            $pullAll: { events: req.body.eventIds }
+        });
+
+        // delete events in database
+        //await Event.deleteMany({});
+
+        // response
+        return res.status(200).json({ success: "Events deleted." });
+    } catch (error) {
+        // validation error
+        if (error.isJoi)
+            return res
+                .status(400)
+                .json({ validationError: error.details[0].message });
+        // invalid mongoDB id format
+        else if (error.name === "CastError")
+            return res
+                .status(400)
+                .json({ invalidId: `No event has id ${error.value}` });
+
+        // TODO: Improve
+        console.log(error);
+        return res.status(500).send("Error processing POST event/add");
+    }
+});
 
 // Expose routes
 module.exports = router;
