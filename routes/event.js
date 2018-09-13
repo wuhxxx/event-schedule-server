@@ -1,7 +1,7 @@
 // Load dependencies
 const express = require("express"),
     auth = require("../auth/auth.js"),
-    config = require("../config/serverConfig");
+    responseBuilder = require("../util/responseBuilder.js");
 
 // Load User and Event model
 const User = require("../models/User.js"),
@@ -10,6 +10,7 @@ const User = require("../models/User.js"),
 // Load joi validator and validation schema
 const Joi = require("joi"),
     newEventSchema = require("../validation/newEvent.js"),
+    updateEventSchema = require("../validation/updateEvent.js"),
     removeEventSchema = require("../validation/removeEvent.js");
 
 // express router
@@ -24,16 +25,20 @@ const router = express.Router();
 router.get("/all", auth.jwtAuth(), async (req, res) => {
     try {
         //console.dir(req.user);
-        const userDoc = await User.findById(req.user._id).populate(
+        const user = await User.findById(req.user._id).populate(
             "events",
             "-createDate -__v"
         );
 
-        return res.status(200).json(userDoc.events);
+        return res
+            .status(200)
+            .json(responseBuilder.successResponse(user.events));
     } catch (error) {
         // log error
         console.log(error);
-        return res.status(500).send("Error processing GET event/all.");
+        return res
+            .status(500)
+            .json(responseBuilder.errorResponse(500, error.message));
     }
 });
 
@@ -61,20 +66,23 @@ router.post("/add", auth.jwtAuth(), async (req, res) => {
         );
 
         // response
-        return res.status(200).json({
-            success: "New event successfully added.",
-            event_id: event.id
-        });
+        return res
+            .status(200)
+            .json(responseBuilder.successResponse({ eventId: event.id }));
     } catch (error) {
         // validation error
         if (error.isJoi)
             return res
                 .status(400)
-                .json({ validationError: error.details[0].message });
+                .json(
+                    responseBuilder.errorResponse(400, error.details[0].message)
+                );
 
         // TODO: Improve
         console.log(error);
-        return res.status(500).send("Error processing POST event/add");
+        return res
+            .status(500)
+            .json(responseBuilder.errorResponse(500, error.message));
     }
 });
 
@@ -84,6 +92,34 @@ router.post("/add", auth.jwtAuth(), async (req, res) => {
  * @endpoint   event/update
  * @access     Private
  */
+router.post("/update", auth.jwtAuth(), async (req, res) => {
+    try {
+        // validation
+        await Joi.validate(req.body, updateEventSchema);
+
+        // find and update
+        //Event.findByIdAndUpdate(req.body.evnetId);
+    } catch (error) {
+        // validation error
+        if (error.isJoi)
+            return res
+                .status(400)
+                .json(
+                    responseBuilder.errorResponse(400, error.details[0].message)
+                );
+        // invalid mongoDB id
+        else if (error.name === "CastError")
+            return res
+                .status(400)
+                .json(responseBuilder.errorResponse(400, error.message));
+
+        // TODO: Improve
+        console.log(error);
+        return res
+            .status(500)
+            .json(responseBuilder.errorResponse(500, error.message));
+    }
+});
 
 /**
  * delete events
@@ -95,33 +131,44 @@ router.post("/delete", auth.jwtAuth(), async (req, res) => {
     try {
         // validation
         await Joi.validate(req.body, removeEventSchema);
-        //console.log(Array.isArray(req.body.eventIds)); // true
 
-        // find corresponding user and remove events' id
-        await User.findByIdAndUpdate(req.user._id, {
-            $pullAll: { events: req.body.eventIds }
-        });
+        // find corresponding user
+        const user = await User.findById(req.user._id);
 
-        // delete events in database
-        await Event.deleteMany({ _id: { $in: req.body.eventIds } });
+        // filter out events which does not belong to this user
+        const intersection = req.body.eventIds.filter(
+            eventid => user.events.indexOf(eventid) !== -1
+        );
+
+        // remove events from user's events array and Events collection
+        await user.updateOne({ $pullAll: { events: intersection } });
+        await Event.deleteMany({ _id: { $in: intersection } });
 
         // response
-        return res.status(200).json({ success: "Events deleted." });
+        return res.status(200).json(
+            responseBuilder.successResponse({
+                deletedEventsId: intersection
+            })
+        );
     } catch (error) {
         // validation error
         if (error.isJoi)
             return res
                 .status(400)
-                .json({ validationError: error.details[0].message });
-        // invalid mongoDB id format
+                .json(
+                    responseBuilder.errorResponse(400, error.details[0].message)
+                );
+        // invalid mongoDB id
         else if (error.name === "CastError")
             return res
                 .status(400)
-                .json({ invalidId: `No event has id ${error.value}` });
+                .json(responseBuilder.errorResponse(400, error.message));
 
         // TODO: Improve
         console.log(error);
-        return res.status(500).send("Error processing POST event/add");
+        return res
+            .status(500)
+            .json(responseBuilder.errorResponse(500, error.message));
     }
 });
 
