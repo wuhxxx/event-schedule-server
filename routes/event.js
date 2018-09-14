@@ -87,75 +87,6 @@ router.post("/add", auth.jwtAuth(), async (req, res) => {
 });
 
 /**
- * Update a event
- * @method     POST
- * @endpoint   event/update
- * @access     Private
- */
-router.post("/update", auth.jwtAuth(), async (req, res) => {
-    try {
-        // validation
-        await Joi.validate(req.body, updateEventSchema);
-
-        // console.log(typeof req.body.data); // string
-
-        // check if the provided data is an object
-        if (typeof req.body.data !== "object") {
-            const err = new Error("'data' must be an object");
-            err.name = "ValidationError";
-            throw err;
-        }
-
-        // check if the event id is in this user's document
-        const user = await User.findById(req.user._id);
-        if (user.events.indexOf(req.body.eventId) === -1) {
-            const err = new Error("Event not found");
-            err.name = "InvalidId";
-            throw err;
-        }
-
-        // find and update
-        await Event.findByIdAndUpdate(req.body.eventId, {
-            $set: req.body.data
-        });
-
-        // response
-        return res.status(200).json(
-            responseBuilder.successResponse({
-                updatedEventId: req.body.eventId
-            })
-        );
-    } catch (error) {
-        // validation error
-        if (error.name === "ValidationError")
-            return res
-                .status(400)
-                .json(
-                    responseBuilder.errorResponse(
-                        400,
-                        error.isJoi ? error.details[0].message : error.message
-                    )
-                );
-        // invalid mongoDB id
-        else if (error.name === "CastError")
-            return res
-                .status(400)
-                .json(responseBuilder.errorResponse(400, error.message));
-        // event not found
-        else if (error.name === "InvalidId")
-            return res
-                .status(404)
-                .json(responseBuilder.errorResponse(404, error.message));
-
-        // TODO: Improve
-        console.log(error);
-        return res
-            .status(500)
-            .json(responseBuilder.errorResponse(500, error.message));
-    }
-});
-
-/**
  * delete events
  * @method     POST
  * @endpoint   event/delete
@@ -185,18 +116,75 @@ router.post("/delete", auth.jwtAuth(), async (req, res) => {
             })
         );
     } catch (error) {
-        // validation error
-        if (error.isJoi)
+        // validation error or invalid mongoDB id
+        if (error.name === "ValidationError" || error.name === "CastError")
             return res
                 .status(400)
                 .json(
-                    responseBuilder.errorResponse(400, error.details[0].message)
+                    responseBuilder.errorResponse(
+                        400,
+                        error.isJoi ? error.details[0].message : error.message
+                    )
                 );
-        // invalid mongoDB id
-        else if (error.name === "CastError")
+
+        // TODO: Improve
+        console.log(error);
+        return res
+            .status(500)
+            .json(responseBuilder.errorResponse(500, error.message));
+    }
+});
+
+/**
+ * Update a event
+ * @method     POST
+ * @endpoint   event/update
+ * @access     Private
+ */
+router.post("/update", auth.jwtAuth(), async (req, res) => {
+    try {
+        // validation
+        await Joi.validate(req.body, updateEventSchema);
+
+        // get the update data, if it is not object, parse
+        const data =
+            typeof req.body.data !== "object"
+                ? JSON.parse(req.body.data)
+                : req.body.data;
+
+        // check if the event id is in this user's document
+        const user = await User.findById(req.user._id);
+        if (user.events.indexOf(req.body.eventId) === -1) {
+            const err = new Error("Event not found");
+            err.name = "NotFound";
+            throw err;
+        }
+
+        // find and update
+        await Event.findByIdAndUpdate(req.body.eventId, { $set: data });
+
+        // response
+        return res.status(200).json(
+            responseBuilder.successResponse({
+                updatedEventId: req.body.eventId
+            })
+        );
+    } catch (error) {
+        // validation error or invalid mongoDB id
+        if (error.name === "ValidationError" || error.name === "CastError")
             return res
                 .status(400)
-                .json(responseBuilder.errorResponse(400, error.message));
+                .json(
+                    responseBuilder.errorResponse(
+                        400,
+                        error.isJoi ? error.details[0].message : error.message
+                    )
+                );
+        // event not found
+        else if (error.name === "NotFound")
+            return res
+                .status(404)
+                .json(responseBuilder.errorResponse(404, error.message));
 
         // TODO: Improve
         console.log(error);
