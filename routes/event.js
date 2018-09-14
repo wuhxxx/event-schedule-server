@@ -97,21 +97,55 @@ router.post("/update", auth.jwtAuth(), async (req, res) => {
         // validation
         await Joi.validate(req.body, updateEventSchema);
 
+        // console.log(typeof req.body.data); // string
+
+        // check if the provided data is an object
+        if (typeof req.body.data !== "object") {
+            const err = new Error("'data' must be an object");
+            err.name = "ValidationError";
+            throw err;
+        }
+
+        // check if the event id is in this user's document
+        const user = await User.findById(req.user._id);
+        if (user.events.indexOf(req.body.eventId) === -1) {
+            const err = new Error("Event not found");
+            err.name = "InvalidId";
+            throw err;
+        }
+
         // find and update
-        //Event.findByIdAndUpdate(req.body.evnetId);
+        await Event.findByIdAndUpdate(req.body.eventId, {
+            $set: req.body.data
+        });
+
+        // response
+        return res.status(200).json(
+            responseBuilder.successResponse({
+                updatedEventId: req.body.eventId
+            })
+        );
     } catch (error) {
         // validation error
-        if (error.isJoi)
+        if (error.name === "ValidationError")
             return res
                 .status(400)
                 .json(
-                    responseBuilder.errorResponse(400, error.details[0].message)
+                    responseBuilder.errorResponse(
+                        400,
+                        error.isJoi ? error.details[0].message : error.message
+                    )
                 );
         // invalid mongoDB id
         else if (error.name === "CastError")
             return res
                 .status(400)
                 .json(responseBuilder.errorResponse(400, error.message));
+        // event not found
+        else if (error.name === "InvalidId")
+            return res
+                .status(404)
+                .json(responseBuilder.errorResponse(404, error.message));
 
         // TODO: Improve
         console.log(error);
