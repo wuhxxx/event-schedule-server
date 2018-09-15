@@ -1,5 +1,6 @@
 const Joi = require("joi");
 
+// "name", "email" and "password" are required for registration
 module.exports = Joi.object().keys({
     name: Joi.string()
         .required()

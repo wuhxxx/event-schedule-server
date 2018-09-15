@@ -56,8 +56,6 @@ router.post("/add", auth.jwtAuth(), async (req, res) => {
         // save event and get id
         const event = await new Event(req.body).save();
 
-        // TODO:log new event creat
-
         // find user document and update
         await User.findByIdAndUpdate(
             req.user._id,
