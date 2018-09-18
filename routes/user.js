@@ -29,7 +29,7 @@ router.post("/register", async (req, res) => {
         await Joi.validate(req.body, newUserSchema);
 
         // check if email exists in database
-        const exists = await User.findOne({ email: req.body.email });
+        const exists = await User.find({ email: req.body.email }).limit(1);
         if (exists) {
             // user with this email exists, throw error
             const err = new Error("This email has been registered");
@@ -85,7 +85,7 @@ router.post("/login", async (req, res) => {
         await Joi.validate(req.body, loginSchema);
 
         // check if email already exists in database
-        const user = await User.count({ email: req.body.email });
+        const user = await User.find({ email: req.body.email }).limit(1);
         if (!user) {
             // email has not yet registered, throw error
             const err = new Error("User not found");
