@@ -39,5 +39,15 @@ const UserSchema = new mongoose.Schema({
     ]
 });
 
+// Decorate the returned object when document.toObject() is called:
+// replace field name "_id" with "userId", and delete field "__v"
+UserSchema.set("toObject", {
+    transform: (document, returnObjcet) => {
+        returnObjcet.userId = returnObjcet._id;
+        delete returnObjcet._id;
+        delete returnObjcet.__v;
+    }
+});
+
 // Exports "User" model
 module.exports = mongoose.model("User", UserSchema);
