@@ -14,6 +14,9 @@ const config = require("./config/serverConfig.js");
 const userRouter = require("./routes/user.js"),
     eventRouter = require("./routes/event.js");
 
+// Bring in error handlers
+const errorHandlers = require("./util/errorHandlers.js");
+
 // Initiate app and use body-parser and passport auth middlewares
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -21,8 +24,10 @@ app.use(bodyParser.json());
 app.use(auth.initialize());
 
 // Connect to MongoDB
-mongoose.set("useCreateIndex", true); // get rid of collection.ensureIndex DeprecationWarning
-mongoose.set("useFindAndModify", false); // get rid of collection.findAndModify DeprecationWarning
+// get rid of "collection.ensureIndex" DeprecationWarning
+mongoose.set("useCreateIndex", true);
+// get rid of "collection.findAndModify" DeprecationWarning
+mongoose.set("useFindAndModify", false);
 mongoose
     .connect(
         config.mongoDBURL,
@@ -31,11 +36,17 @@ mongoose
     .then(() => console.log("DB connected"))
     .catch(err => console.log(err));
 
-// Use routes
+// use routes
 app.use("/user", userRouter);
 app.use("/event", eventRouter);
 
 //app.all("*", (req, res) => {});
+
+// use error handlers, server error handler should be in the last
+app.use(errorHandlers.validationErrorHandler);
+app.use(errorHandlers.userErrorHandler);
+app.use(errorHandlers.eventErrorHandler);
+app.use(errorHandlers.serverErrorHandler);
 
 // Start server and listen on the specific port
 app.listen(config.PORT, () => {
