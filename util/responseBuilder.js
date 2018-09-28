@@ -1,4 +1,6 @@
 // Construct JSON api response message according to google JSON style guide
+
+// TODO: add JS doc
 const successResponse = data => {
     const response = {};
     response.data = data;
