@@ -6,13 +6,20 @@ const express = require("express"),
     config = require("../config/serverConfig.js");
 
 // Load User and Event model
-const User = require("../models/User.js"),
-    Event = require("../models/Event.js");
+const User = require("../models/User.js");
+require("../models/Event.js"); // require for User model to reference
 
 // Load joi validator and validation schema
 const Joi = require("joi"),
     newUserSchema = require("../validation/newUser.js"),
     loginSchema = require("../validation/login.js");
+
+// Load error type
+const {
+    EmailRegistered,
+    UserNotFound,
+    WrongPassword
+} = require("../util/errorTypes.js");
 
 // express router
 const router = express.Router();
@@ -23,19 +30,19 @@ const router = express.Router();
  * @endpoint   user/register
  * @access     Public
  */
-router.post("/register", async (req, res) => {
+router.post("/register", async (req, res, next) => {
     try {
         // validate input
         await Joi.validate(req.body, newUserSchema);
 
         // check if email exists in database
-        const exists = await User.find({ email: req.body.email }).limit(1);
-        if (exists) {
-            // user with this email exists, throw error
-            const err = new Error("This email has been registered");
-            err.name = "EmailExists";
-            throw err;
-        }
+        const userArray = await User.find({
+            email: req.body.email
+        }).limit(1);
+        // find().limit(1) returns an empty array if email not registered,
+        // or an array contains only one element if email registered,
+        // if user with this email exists, throw error
+        if (userArray.length > 0) throw new EmailRegistered();
 
         // new user
         const newUser = new User({
@@ -52,89 +59,50 @@ router.post("/register", async (req, res) => {
         // response
         return res.status(200).json(responseBuilder.successResponse(savedUser));
     } catch (error) {
-        // validation error
-        if (error.name === "ValidationError")
-            return res
-                .status(400)
-                .json(
-                    responseBuilder.errorResponse(400, error.details[0].message)
-                );
-        // email exists
-        else if (error.name === "EmailExists")
-            return res
-                .status(409)
-                .json(responseBuilder.errorResponse(409, error.message));
-
-        // TODO: Improve
-        console.log(error);
-        return res
-            .status(500)
-            .json(responseBuilder.errorResponse(500, error.message));
+        next(error);
     }
 });
 
 /**
- * The login route, if login succeeds, send back jwt token and user data
+ * The login route, if login succeeds, send back jwt bearer token and username.
  * @method     POST
  * @endpoint   user/login
  * @access     Public
  */
-router.post("/login", async (req, res) => {
+router.post("/login", async (req, res, next) => {
     try {
         // validation
         await Joi.validate(req.body, loginSchema);
 
         // check if email already exists in database
-        const user = await User.find({ email: req.body.email }).limit(1);
-        if (!user) {
-            // email has not yet registered, throw error
-            const err = new Error("User not found");
-            err.name = "UserNotFound";
-            throw err;
-        }
+        const userArray = await User.find({ email: req.body.email }).limit(1);
+        // find().limit(1) returns an empty array if user not exists,
+        // or an array contains only one element if user exists,
+        // if array is empty, throw error
+        if (userArray.length === 0) throw new UserNotFound();
 
-        // compare password
+        // get pointer to corresponding user document
+        const user = userArray[0];
+
+        // conpare password
         const isMatch = await bcrypt.compare(req.body.password, user.password);
-        if (!isMatch) {
-            // password not match, throw error
-            const err = new Error("Password is incorrect");
-            err.name = "WrongPassword";
-            throw err;
-        }
+        // if password not match, throw error
+        if (!isMatch) throw new WrongPassword();
 
-        // assign jwt token
+        // assign jwt token, payload includes user's id
         const jwt_payload = { id: user.id };
-        const token = await jwt.sign(jwt_payload, config.JWTSecretOrKey, {
+        let token = await jwt.sign(jwt_payload, config.JWTSecretOrKey, {
             expiresIn: config.tokenExpiresIn
         });
+        token = `Bearer ${token}`;
 
-        // send token back
-        return res.status(200).json(responseBuilder.successResponse({ token }));
-    } catch (error) {
-        // validation error
-        if (error.name === "ValidationError")
-            return res
-                .status(400)
-                .json(
-                    responseBuilder.errorResponse(400, error.details[0].message)
-                );
-        // user not found
-        else if (error.name === "UserNotFound") {
-            return res
-                .status(404)
-                .json(responseBuilder.errorResponse(404, error.message));
-        }
-        // wrong password
-        else if (error.name === "WrongPassword")
-            return res
-                .status(400)
-                .json(responseBuilder.errorResponse(400, error.message));
-
-        // TODO: Improve
-        console.log(error);
+        // send jwt bearer token back and username
+        const username = user.name;
         return res
-            .status(500)
-            .json(responseBuilder.errorResponse(500, error.message));
+            .status(200)
+            .json(responseBuilder.successResponse({ token, username }));
+    } catch (error) {
+        next(error);
     }
 });
 

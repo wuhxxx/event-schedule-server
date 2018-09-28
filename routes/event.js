@@ -13,6 +13,9 @@ const Joi = require("joi"),
     updateEventSchema = require("../validation/updateEvent.js"),
     removeEventSchema = require("../validation/removeEvent.js");
 
+// Load error type
+const { EventNotFound } = require("../util/errorTypes.js");
+
 // express router
 const router = express.Router();
 
@@ -22,23 +25,16 @@ const router = express.Router();
  * @endpoint   event/all
  * @access     Private
  */
-router.get("/all", auth.jwtAuth(), async (req, res) => {
+router.get("/all", auth.jwtAuth(), async (req, res, next) => {
     try {
-        //console.dir(req.user);
-        const user = await User.findById(req.user._id).populate(
-            "events",
-            "-createDate -__v"
-        );
+        // console.dir(req.user);
+        const events = await User.findById(req.user._id)
+            .populate("events", "-createDate")
+            .select("events");
 
-        return res
-            .status(200)
-            .json(responseBuilder.successResponse(user.events));
+        return res.status(200).json(responseBuilder.successResponse(events));
     } catch (error) {
-        // log error
-        console.log(error);
-        return res
-            .status(500)
-            .json(responseBuilder.errorResponse(500, error.message));
+        next(error);
     }
 });
 
@@ -48,7 +44,7 @@ router.get("/all", auth.jwtAuth(), async (req, res) => {
  * @endpoint   event/add
  * @access     Private
  */
-router.post("/add", auth.jwtAuth(), async (req, res) => {
+router.post("/add", auth.jwtAuth(), async (req, res, next) => {
     try {
         // validate req.body
         await Joi.validate(req.body, newEventSchema);
@@ -59,7 +55,7 @@ router.post("/add", auth.jwtAuth(), async (req, res) => {
         // find user document and update
         await User.findByIdAndUpdate(
             req.user._id,
-            { $push: { events: event } },
+            { $push: { events: event.eventId } },
             { safe: true, upsert: true }
         );
 
@@ -68,19 +64,8 @@ router.post("/add", auth.jwtAuth(), async (req, res) => {
             .status(200)
             .json(responseBuilder.successResponse({ eventId: event.id }));
     } catch (error) {
-        // validation error
-        if (error.isJoi)
-            return res
-                .status(400)
-                .json(
-                    responseBuilder.errorResponse(400, error.details[0].message)
-                );
-
-        // TODO: Improve
         console.log(error);
-        return res
-            .status(500)
-            .json(responseBuilder.errorResponse(500, error.message));
+        next(error);
     }
 });
 
@@ -90,7 +75,7 @@ router.post("/add", auth.jwtAuth(), async (req, res) => {
  * @endpoint   event/delete
  * @access     Private
  */
-router.post("/delete", auth.jwtAuth(), async (req, res) => {
+router.post("/delete", auth.jwtAuth(), async (req, res, next) => {
     try {
         // validation
         await Joi.validate(req.body, removeEventSchema);
@@ -114,37 +99,22 @@ router.post("/delete", auth.jwtAuth(), async (req, res) => {
             })
         );
     } catch (error) {
-        // validation error or invalid mongoDB id
-        if (error.name === "ValidationError" || error.name === "CastError")
-            return res
-                .status(400)
-                .json(
-                    responseBuilder.errorResponse(
-                        400,
-                        error.isJoi ? error.details[0].message : error.message
-                    )
-                );
-
-        // TODO: Improve
-        console.log(error);
-        return res
-            .status(500)
-            .json(responseBuilder.errorResponse(500, error.message));
+        next(error);
     }
 });
 
 /**
- * Update a event
+ * Update an event
  * @method     POST
  * @endpoint   event/update
  * @access     Private
  */
-router.post("/update", auth.jwtAuth(), async (req, res) => {
+router.post("/update", auth.jwtAuth(), async (req, res, next) => {
     try {
         // validation
         await Joi.validate(req.body, updateEventSchema);
 
-        // get the update data, if it is not object, parse
+        // get the update data, if it is not object but string, parse
         const data =
             typeof req.body.data !== "object"
                 ? JSON.parse(req.body.data)
@@ -152,11 +122,8 @@ router.post("/update", auth.jwtAuth(), async (req, res) => {
 
         // check if the event id is in this user's document
         const user = await User.findById(req.user._id);
-        if (user.events.indexOf(req.body.eventId) === -1) {
-            const err = new Error("Event not found");
-            err.name = "NotFound";
-            throw err;
-        }
+        if (user.events.indexOf(req.body.eventId) === -1)
+            throw new EventNotFound();
 
         // find and update
         await Event.findByIdAndUpdate(req.body.eventId, { $set: data });
@@ -168,27 +135,7 @@ router.post("/update", auth.jwtAuth(), async (req, res) => {
             })
         );
     } catch (error) {
-        // validation error or invalid mongoDB id
-        if (error.name === "ValidationError" || error.name === "CastError")
-            return res
-                .status(400)
-                .json(
-                    responseBuilder.errorResponse(
-                        400,
-                        error.isJoi ? error.details[0].message : error.message
-                    )
-                );
-        // event not found
-        else if (error.name === "NotFound")
-            return res
-                .status(404)
-                .json(responseBuilder.errorResponse(404, error.message));
-
-        // TODO: Improve
-        console.log(error);
-        return res
-            .status(500)
-            .json(responseBuilder.errorResponse(500, error.message));
+        next(error);
     }
 });
 
