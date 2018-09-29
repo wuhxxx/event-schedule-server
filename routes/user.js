@@ -56,8 +56,18 @@ router.post("/register", async (req, res, next) => {
         // save to database
         const savedUser = await newUser.save();
 
-        // response
-        return res.status(200).json(responseBuilder.successResponse(savedUser));
+        // assign jwt token, payload includes user's id
+        const jwt_payload = { id: savedUser.userId };
+        let token = await jwt.sign(jwt_payload, config.JWTSecretOrKey, {
+            expiresIn: config.tokenExpiresIn
+        });
+        token = `Bearer ${token}`;
+
+        // send jwt bearer token back and username
+        const username = savedUser.name;
+        return res
+            .status(200)
+            .json(responseBuilder.successResponse({ token, username }));
     } catch (error) {
         next(error);
     }
