@@ -15,7 +15,15 @@ const userRouter = require("./routes/user.js"),
     eventRouter = require("./routes/event.js");
 
 // Bring in error handlers
-const errorHandlers = require("./util/errorHandlers.js");
+const {
+    validationErrorHandler,
+    userErrorHandler,
+    eventErrorHandler,
+    serverErrorHandler
+} = require("./util/errorHandlers.js");
+
+// Bring in loggers
+const { loggerHelper, requestLogger, errorLogger } = require("./util/loggers");
 
 // Initiate app and use body-parser and passport auth middlewares
 const app = express();
@@ -36,17 +44,24 @@ mongoose
     .then(() => console.log("DB connected"))
     .catch(err => console.log(err));
 
+// use logger
+app.use(requestLogger);
+
 // use routes
 app.use("/user", userRouter);
 app.use("/event", eventRouter);
 
 //app.all("*", (req, res) => {});
 
-// use error handlers, server error handler should be in the last
-app.use(errorHandlers.validationErrorHandler);
-app.use(errorHandlers.userErrorHandler);
-app.use(errorHandlers.eventErrorHandler);
-app.use(errorHandlers.serverErrorHandler);
+// use logger helper
+app.use(loggerHelper);
+
+// use error handlers and error logger, server error handler should be in the last
+app.use(validationErrorHandler);
+app.use(userErrorHandler);
+app.use(eventErrorHandler);
+app.use(errorLogger);
+app.use(serverErrorHandler);
 
 // Start server and listen on the specific port
 app.listen(config.PORT, () => {
