@@ -1,4 +1,5 @@
 // A date time formatter which outputs formatted time according to options
+// see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DateTimeFormat
 const options = {
     month: "short",
     day: "numeric",
