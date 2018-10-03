@@ -1,9 +1,6 @@
 # The node module directory
 node_modules
 
-# package.json lock file
-package-lock.json
-
 # eslint style sheet
 .eslintrc.json
 
