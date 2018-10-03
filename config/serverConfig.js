@@ -15,7 +15,7 @@ module.exports = {
     },
 
     // port to listen on
-    PORT: process.env.PORT || 3000,
+    PORT: process.env.PORT || 2333,
 
     // token expires after 1 week (unit: milesecond)
     tokenExpiresIn: 1000 * 60 * 60 * 24 * 7
