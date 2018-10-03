@@ -23,7 +23,12 @@ const {
 } = require("./util/errorHandlers.js");
 
 // Bring in loggers
-const { loggerHelper, requestLogger, errorLogger } = require("./util/loggers");
+const {
+    logger,
+    loggerHelper,
+    requestLogger,
+    errorLogger
+} = require("./util/loggers");
 
 // Initiate app and use body-parser and passport auth middlewares
 const app = express();
@@ -41,8 +46,8 @@ mongoose
         config.mongoDBURL,
         { useNewUrlParser: true }
     )
-    .then(() => console.log("DB connected"))
-    .catch(err => console.log(err));
+    .then(() => logger.info("DB connected"))
+    .catch(err => logger.error(err.toString(), { stack: err.stack }));
 
 // use logger
 app.use(requestLogger);
@@ -51,7 +56,10 @@ app.use(requestLogger);
 app.use("/user", userRouter);
 app.use("/event", eventRouter);
 
-//app.all("*", (req, res) => {});
+// wildcard routing
+app.all("*", (req, res) => {
+    res.status(404).send("<h1>URL not found</h1>");
+});
 
 // use logger helper
 app.use(loggerHelper);
@@ -65,5 +73,5 @@ app.use(serverErrorHandler);
 
 // Start server and listen on the specific port
 app.listen(config.PORT, () => {
-    console.log(`Server starts Listening on port ${config.PORT}`);
+    logger.info(`Server starts Listening on port ${config.PORT}`);
 });

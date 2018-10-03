@@ -45,9 +45,11 @@ const requestLogger = (req, res, next) => {
         // response time
         const responseTime = new Date() - receiveTime;
 
-        let response = "OK";
         // response
-        if (res.statusCode !== 200) response = res.errorType;
+        let response = "OK";
+        if (res.statusCode !== 200 && res.errorType) response = res.errorType;
+        else if (res.statusCode !== 200) response = "URLNotFound";
+
         // log request
         logger.info(
             `${req.method} ${req.originalUrl} -> ${
@@ -69,4 +71,4 @@ const errorLogger = (err, req, res, next) => {
     next(err);
 };
 
-module.exports = { loggerHelper, requestLogger, errorLogger };
+module.exports = { logger, loggerHelper, requestLogger, errorLogger };
