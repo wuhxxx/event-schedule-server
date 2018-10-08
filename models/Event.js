@@ -35,12 +35,12 @@ const EventSchema = new mongoose.Schema({
         max: 1440,
         required: true
     },
-    dayOfWeek: {
+    weekDay: {
         // event's day of week,
-        // range [1,7], Monday to Sunday
+        // range [1,7], Monday to Friday
         type: Number,
         min: 1,
-        max: 7,
+        max: 5,
         required: true
     },
     createDate: {
