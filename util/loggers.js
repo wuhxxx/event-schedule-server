@@ -45,18 +45,26 @@ const requestLogger = (req, res, next) => {
         // response time
         const responseTime = new Date() - receiveTime;
 
-        // response
-        let response = "OK";
-        if (res.statusCode !== 200 && res.errorType) response = res.errorType;
-        else if (res.statusCode !== 200) response = "URLNotFound";
+        // response, initially set to null, falsy
+        let response = null;
+        // if status code is 200, set to "OK"
+        // if status code is not 200, but error type is known, set to error type
+        if (res.statusCode === 200) response = "OK";
+        else if (res.errorType) response = res.errorType;
 
-        // log request
-        logger.info(
-            `${req.method} ${req.originalUrl} -> ${
-                res.statusCode
-            } ${response} in ${responseTime}ms`
-        );
-        // assign old res.end back
+        // Only do logging when response is truthy
+        // Falsy response indicates:
+        //   1. Unauthorized or wildcard routes request, no need to log
+        //   2. Unknown server error, which will be logged by errorLogger
+        if (response) {
+            logger.info(
+                `${req.method} ${req.originalUrl} -> ${
+                    res.statusCode
+                } ${response} in ${responseTime}ms`
+            );
+        }
+
+        // assign old res.end back and execute it
         res.end = oldEnd;
         return oldEnd.apply(res, arguments);
     };
