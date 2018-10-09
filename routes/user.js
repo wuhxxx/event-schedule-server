@@ -25,10 +25,16 @@ const {
 const router = express.Router();
 
 /**
- * The register route
+ * Register new user
+ * Required fileds in req.body:
+ *   - name (String), client side browser displays this in top bar
+ *   - email (String), user indentifier, unique
+ *   - password (String), 4-30 length, ^[a-zA-Z0-9!@#$%^&]{4,30}$
+ *
  * @method     POST
  * @endpoint   user/register
  * @access     Public
+ * @returns    Jwt token (response.data.token) and user's name (response.data.name)
  */
 router.post("/register", async (req, res, next) => {
     try {
@@ -56,28 +62,34 @@ router.post("/register", async (req, res, next) => {
         // save to database
         const savedUser = await newUser.save();
 
-        // assign jwt token, payload includes user's id
-        const jwt_payload = { id: savedUser.userId };
+        // assign jwt token, payload includes user's id,
+        // must use '.id' to access generated user id
+        const jwt_payload = { id: savedUser.id };
         let token = await jwt.sign(jwt_payload, config.JWTSecretOrKey, {
             expiresIn: config.tokenExpiresIn
         });
         token = `Bearer ${token}`;
 
         // send jwt bearer token back and username
-        const username = savedUser.name;
+        const name = savedUser.name;
         return res
             .status(200)
-            .json(responseBuilder.successResponse({ token, username }));
+            .json(responseBuilder.successResponse({ token, name }));
     } catch (error) {
         next(error);
     }
 });
 
 /**
- * The login route, if login succeeds, send back jwt bearer token and username.
+ * Login user
+ * Required fields in req.body
+ *   - emial (String)
+ *   - password (String)
+ *
  * @method     POST
  * @endpoint   user/login
  * @access     Public
+ * @returns    Jwt token (response.data.token) and user's name (response.data.name)
  */
 router.post("/login", async (req, res, next) => {
     try {
@@ -94,12 +106,13 @@ router.post("/login", async (req, res, next) => {
         // get pointer to corresponding user document
         const user = userArray[0];
 
-        // conpare password
+        // compare password
         const isMatch = await bcrypt.compare(req.body.password, user.password);
         // if password not match, throw error
         if (!isMatch) throw new WrongPassword();
 
         // assign jwt token, payload includes user's id
+        // must use '.id' to access generated user id
         const jwt_payload = { id: user.id };
         let token = await jwt.sign(jwt_payload, config.JWTSecretOrKey, {
             expiresIn: config.tokenExpiresIn
@@ -107,10 +120,10 @@ router.post("/login", async (req, res, next) => {
         token = `Bearer ${token}`;
 
         // send jwt bearer token back and username
-        const username = user.name;
+        const name = user.name;
         return res
             .status(200)
-            .json(responseBuilder.successResponse({ token, username }));
+            .json(responseBuilder.successResponse({ token, name }));
     } catch (error) {
         next(error);
     }

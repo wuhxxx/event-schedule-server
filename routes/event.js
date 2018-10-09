@@ -20,10 +20,12 @@ const { EventNotFound } = require("../util/errorTypes.js");
 const router = express.Router();
 
 /**
- * Get all events of a specific user
+ * Get all evnets of the corresponding user specified in jwt payload.
+ *
  * @method     GET
  * @endpoint   event/all
  * @access     Private
+ * @returns    An array of event objects (response.data.events)
  */
 router.get("/all", auth.jwtAuth(), async (req, res, next) => {
     try {
@@ -39,10 +41,17 @@ router.get("/all", auth.jwtAuth(), async (req, res, next) => {
 });
 
 /**
- * Add a new event for a specific user
+ * Add a new event for a specific user.
+ * These fields of an event are required in req.body:
+ *   - title (string)
+ *   - startAt (number)
+ *   - endAt (number)
+ *   - weekday (number)
+ *
  * @method     POST
  * @endpoint   event/add
  * @access     Private
+ * @returns    The eventId of the newly added event (response.data.eventId)
  */
 router.post("/add", auth.jwtAuth(), async (req, res, next) => {
     try {
@@ -55,7 +64,8 @@ router.post("/add", auth.jwtAuth(), async (req, res, next) => {
         // find user document and update
         await User.findByIdAndUpdate(
             req.user._id,
-            { $push: { events: event.eventId } },
+            // must use '.id' to access generated event id
+            { $push: { events: event.id } },
             { safe: true, upsert: true }
         );
 
@@ -64,16 +74,19 @@ router.post("/add", auth.jwtAuth(), async (req, res, next) => {
             .status(200)
             .json(responseBuilder.successResponse({ eventId: event.id }));
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
 
 /**
- * delete events
+ * Delete events according to event's id, only those existing events are deleted
+ * An array of event's id is required in req.body:
+ *   - eventIds (Array of event id, which is a 24-character string)
+ *
  * @method     POST
  * @endpoint   event/delete
  * @access     Private
+ * @returns    An array of event ids which are deleted (response.data.deletedEventsId)
  */
 router.post("/delete", auth.jwtAuth(), async (req, res, next) => {
     try {
@@ -105,9 +118,15 @@ router.post("/delete", auth.jwtAuth(), async (req, res, next) => {
 
 /**
  * Update an event
+ * A event id and a data object is required in req.body:
+ *   - eventId (String)
+ *   - data (Object)
+ *   An empty data object makes event unchange
+ *
  * @method     POST
  * @endpoint   event/update
  * @access     Private
+ * @returns    The updated event's id
  */
 router.post("/update", auth.jwtAuth(), async (req, res, next) => {
     try {
