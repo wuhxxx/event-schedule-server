@@ -53,8 +53,8 @@ mongoose
 app.use(requestLogger);
 
 // use routes
-app.use("/user", userRouter);
-app.use("/event", eventRouter);
+app.use("api/v1/user", userRouter);
+app.use("api/v1/event", eventRouter);
 
 // wildcard routing
 app.all("*", (req, res) => {
