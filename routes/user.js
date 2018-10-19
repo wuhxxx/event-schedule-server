@@ -25,18 +25,18 @@ const {
 const router = express.Router();
 
 /**
- * Register new user
+ * Register new user. (signup is a noun)
  * Required fileds in req.body:
  *   - name (String), client side browser displays this in top bar
  *   - email (String), user indentifier, unique
  *   - password (String), 4-30 length, ^[a-zA-Z0-9!@#$%^&]{4,30}$
  *
  * @method     POST
- * @endpoint   user/register
+ * @endpoint   user/signup
  * @access     Public
  * @returns    Jwt token (response.data.token) and user's name (response.data.name)
  */
-router.post("/register", async (req, res, next) => {
+router.post("/signup", async (req, res, next) => {
     try {
         // validate input
         await Joi.validate(req.body, newUserSchema);
@@ -81,7 +81,7 @@ router.post("/register", async (req, res, next) => {
 });
 
 /**
- * Login user
+ * User log in. (login is a noun)
  * Required fields in req.body
  *   - emial (String)
  *   - password (String)
