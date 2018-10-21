@@ -20,7 +20,7 @@ const { EventNotFound } = require("../util/errorTypes.js");
 const router = express.Router();
 
 /**
- * Get all evnets of the corresponding user specified in jwt payload.
+ * Get all events of the corresponding user specified in jwt payload.
  *
  * @method     GET
  * @endpoint   event/all
