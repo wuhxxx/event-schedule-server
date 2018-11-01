@@ -1,5 +1,5 @@
 {
-    "name": "weekly-scheduler-server",
+    "name": "event-schedule-server",
     "version": "1.0.0",
     "description": "The backend of weekly-scheduler.",
     "main": "index.js",
