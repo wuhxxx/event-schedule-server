@@ -19,7 +19,7 @@ const EventSchema = new mongoose.Schema({
     startAt: {
         // store as a number of minutes,
         // value range [0, 1440], 1440 = 24 hour * 60 minute
-        // startTime must less than endTime
+        // startTime must be less than endTime
         type: Number,
         min: 0,
         max: 1440,
@@ -29,7 +29,7 @@ const EventSchema = new mongoose.Schema({
     endAt: {
         // store as a number of minutes,
         // value range [0, 1440], 1440 = 24 hour * 60 minute
-        // endTime must larger than startTime
+        // endTime must be larger than startTime
         type: Number,
         min: 0,
         max: 1440,
