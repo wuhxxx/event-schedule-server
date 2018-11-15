@@ -3,7 +3,7 @@ const express = require("express"),
     bcrypt = require("bcryptjs"),
     jwt = require("jsonwebtoken"),
     responseBuilder = require("../util/responseBuilder.js"),
-    config = require("../config/serverConfig.js");
+    { JWTSecretOrKey, tokenExpiresIn } = require("../config/serverConfig.js");
 
 // Load User and Event model
 const User = require("../models/User.js");
@@ -25,7 +25,7 @@ const {
 const router = express.Router();
 
 /**
- * Register new user. (signup is a noun)
+ * Register new user.
  * Required fileds in req.body:
  *   - name (String), client side browser displays this in top bar
  *   - email (String), user indentifier, unique
@@ -62,26 +62,28 @@ router.post("/signup", async (req, res, next) => {
         // save to database
         const savedUser = await newUser.save();
 
+        // token expires in
+        const expiresIn = tokenExpiresIn;
+
         // assign jwt token, payload includes user's id,
         // must use '.id' to access generated user id
         const jwt_payload = { id: savedUser.id };
-        let token = await jwt.sign(jwt_payload, config.JWTSecretOrKey, {
-            expiresIn: config.tokenExpiresIn
+        const token = await jwt.sign(jwt_payload, JWTSecretOrKey, {
+            expiresIn
         });
-        token = `Bearer ${token}`;
 
-        // send jwt bearer token back and username
+        // send jwt token, username and expiresIn back
         const name = savedUser.name;
         return res
             .status(200)
-            .json(responseBuilder.successResponse({ token, name }));
+            .json(responseBuilder.successResponse({ token, name, expiresIn }));
     } catch (error) {
         next(error);
     }
 });
 
 /**
- * User log in. (login is a noun)
+ * User log in.
  * Required fields in req.body
  *   - emial (String)
  *   - password (String)
@@ -111,19 +113,21 @@ router.post("/login", async (req, res, next) => {
         // if password not match, throw error
         if (!isMatch) throw new WrongPassword();
 
-        // assign jwt token, payload includes user's id
+        // token expires in
+        const expiresIn = tokenExpiresIn;
+
+        // assign jwt token, payload includes user's id,
         // must use '.id' to access generated user id
         const jwt_payload = { id: user.id };
-        let token = await jwt.sign(jwt_payload, config.JWTSecretOrKey, {
-            expiresIn: config.tokenExpiresIn
+        const token = await jwt.sign(jwt_payload, JWTSecretOrKey, {
+            expiresIn
         });
-        token = `Bearer ${token}`;
 
-        // send jwt bearer token back and username
+        // send jwt token, username and expiresIn back
         const name = user.name;
         return res
             .status(200)
-            .json(responseBuilder.successResponse({ token, name }));
+            .json(responseBuilder.successResponse({ token, name, expiresIn }));
     } catch (error) {
         next(error);
     }
