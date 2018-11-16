@@ -10,6 +10,9 @@ const express = require("express"),
 // Bring in server config
 const config = require("./config/serverConfig.js");
 
+// Database cleaner
+const databaseCleaner = require("./util/databaseCleaner.js");
+
 // Bring in routes
 const userRouter = require("./routes/user.js"),
     eventRouter = require("./routes/event.js");
@@ -46,7 +49,14 @@ mongoose
         config.mongoDBURL,
         { useNewUrlParser: true }
     )
-    .then(() => logger.info("DB connected"))
+    .then(() => logger.info("DB connected!"))
+    .then(() => {
+        if (process.env.DATABASE_CLEANUP) {
+            // regularly clean up database
+            setInterval(databaseCleaner, config.databaseCleanDelay);
+            logger.info("Database regularly cleaning up set.");
+        }
+    })
     .catch(err => logger.error(err.toString(), { stack: err.stack }));
 
 // use logger

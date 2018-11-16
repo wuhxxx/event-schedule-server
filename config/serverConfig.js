@@ -5,6 +5,9 @@ module.exports = {
         process.env.MONGODBURL ||
         "mongodb://localhost:27017/weekly-scheduler-server",
 
+    // database clean up delay, initially 3 days
+    databaseCleanDelay: 1000 * 60 * 60 * 24 * 3,
+
     // JWT secretOrKey
     JWTSecretOrKey: process.env.JWTSECRETORKEY || "secret",
 
