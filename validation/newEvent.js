@@ -13,7 +13,7 @@ module.exports = Joi.object().keys({
         .max(1440)
         .greater(Joi.ref("startAt"))
         .required(),
-    weekDay: Joi.number()
+    weekday: Joi.number()
         .min(1)
         .max(5)
         .required()

@@ -41,7 +41,7 @@ const EventSchema = new mongoose.Schema({
         required: true
     },
     // event's day of week
-    weekDay: {
+    weekday: {
         // range [1,5], Monday to Friday
         type: Number,
         min: 1,
