@@ -15,6 +15,11 @@ const EventSchema = new mongoose.Schema({
     description: {
         type: String
     },
+    // event's color, decimal value of hex color number
+    color: {
+        type: Number,
+        required: true
+    },
     // event's start time
     startAt: {
         // store as a number of minutes,
