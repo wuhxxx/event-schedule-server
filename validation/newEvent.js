@@ -4,6 +4,10 @@ module.exports = Joi.object().keys({
     title: Joi.string().required(),
     location: Joi.string(),
     description: Joi.string(),
+    color: Joi.number()
+        .min(0)
+        .max(16777215) // decimal value of hex 0xFFFFFF
+        .required(),
     startAt: Joi.number()
         .min(0)
         .max(1440)
