@@ -10,12 +10,12 @@
  *
  * @return {Class} An error class, which inherits the built-in Error class
  */
-const ErrorType = (typeName, statusCode, defaultMessage) => {
+const ErrorType = (errorName, statusCode, defaultMessage) => {
     // The custom error class, accepts optional custom message
     class CustomError extends Error {
         constructor(message = defaultMessage) {
             super(message);
-            this.name = typeName;
+            this.name = errorName;
             this.statusCode = statusCode;
             // clip the constructor invocation from the stack trace.
             // see Nodejs's doc: https://nodejs.org/api/errors.html
@@ -24,7 +24,7 @@ const ErrorType = (typeName, statusCode, defaultMessage) => {
     }
     // assign properties to CustomError class,
     // so that other modules can easily reference information about error types
-    CustomError.typeName = typeName;
+    CustomError.errorName = errorName;
     CustomError.statusCode = statusCode;
     CustomError.defaultMessage = defaultMessage;
 
@@ -33,13 +33,13 @@ const ErrorType = (typeName, statusCode, defaultMessage) => {
 
 /** Usage Example **/
 // const NotFound = ErrorType("NotFound", 404, "Resource not found");
-// console.log(NotFound.typeName); // NotFound
+// console.log(NotFound.errorName); // NotFound
 // console.log(NotFound.statusCode); // 404
 // console.log(NotFound.defaultMessage); // Resource not found
 // const err = new NotFound("User not found");
 // console.log(typeof err); // object
 // console.log(err instanceof Error); // true
-// console.log(err.name); // NotFound
+// console.log(err.errorName); // NotFound
 // console.log(err.statusCode); // 404
 // console.log(err.message); // User not found
 // throw new NotFound(); // stack trace ends here
