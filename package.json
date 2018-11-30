@@ -9,7 +9,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/wuhxxx/weekly-scheduler-server.git"
+        "url": "git+https://github.com/wuhxxx/event-schedule-server.git"
     },
     "keywords": [
         "nodejs"
@@ -17,9 +17,9 @@
     "author": "Hongxin Wu (github.com/wuhxxx)",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/wuhxxx/weekly-scheduler-server/issues"
+        "url": "https://github.com/wuhxxx/event-schedule-server/issues"
     },
-    "homepage": "https://github.com/wuhxxx/weekly-scheduler-server#readme",
+    "homepage": "https://github.com/wuhxxx/event-schedule-server#readme",
     "dependencies": {
         "bcryptjs": "^2.4.3",
         "body-parser": "^1.18.3",
@@ -35,7 +35,10 @@
         "winston-console-formatter": "^1.0.0-beta.3"
     },
     "devDependencies": {
+        "chai": "^4.2.0",
         "eslint": "^5.5.0",
-        "nodemon": "^1.18.4"
+        "mocha": "^5.2.0",
+        "nodemon": "^1.18.4",
+        "supertest": "^3.3.0"
     }
 }
