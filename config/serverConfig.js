@@ -1,18 +1,21 @@
 // Expose server config
 module.exports = {
     // mongoDB URL
-    mongoDBURL:
+    MONGODB_URL:
         process.env.MONGODBURL ||
-        "mongodb://localhost:27017/weekly-scheduler-server",
+        "mongodb://localhost:27017/event-schedule-server",
 
     // database clean up delay, initially 3 days
-    databaseCleanDelay: 1000 * 60 * 60 * 24 * 3,
+    REGULAR_CLEAN_INTERVAL: 1000 * 60 * 60 * 24 * 3,
+
+    // our server's base api route, including version
+    BASE_API_ROUTE: "/api/v1",
 
     // JWT secretOrKey
-    JWTSecretOrKey: process.env.JWTSECRETORKEY || "secret",
+    JWT_SECRET_OR_KEY: process.env.JWTSECRETORKEY || "secret",
 
     // Options for passport-jwt authentication
-    jwtAuthOptions: {
+    JWT_AUTH_OPTIONS: {
         // more options : http://www.passportjs.org/docs/authenticate/
         session: false
     },
@@ -21,5 +24,5 @@ module.exports = {
     PORT: process.env.PORT || 2333,
 
     // token expires after 1 week (unit: milesecond)
-    tokenExpiresIn: 1000 * 60 * 60 * 24 * 7
+    TOKEN_EXPIRES_IN: 1000 * 60 * 60 * 24 * 7
 };

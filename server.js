@@ -8,7 +8,12 @@ const express = require("express"),
     auth = require("./auth/auth.js");
 
 // Bring in server config
-const config = require("./config/serverConfig.js");
+const {
+    MONGODB_URL,
+    REGULAR_CLEAN_INTERVAL,
+    BASE_API_ROUTE,
+    PORT
+} = require("./config/serverConfig.js");
 
 // Database cleaner
 const databaseCleaner = require("./util/databaseCleaner.js");
@@ -46,14 +51,14 @@ mongoose.set("useCreateIndex", true);
 mongoose.set("useFindAndModify", false);
 mongoose
     .connect(
-        config.mongoDBURL,
+        MONGODB_URL,
         { useNewUrlParser: true }
     )
     .then(() => logger.info("DB connected!"))
     .then(() => {
         if (process.env.DATABASE_CLEANUP) {
             // regularly clean up database
-            setInterval(databaseCleaner, config.databaseCleanDelay);
+            setInterval(databaseCleaner, REGULAR_CLEAN_INTERVAL);
             logger.info("Database regularly cleaning up set.");
         }
     })
@@ -63,8 +68,8 @@ mongoose
 app.use(requestLogger);
 
 // use routes
-app.use("/api/v1/users", userRouter);
-app.use("/api/v1/events", eventRouter);
+app.use(`${BASE_API_ROUTE}/users`, userRouter);
+app.use(`${BASE_API_ROUTE}/events`, eventRouter);
 
 // wildcard routing
 app.all("*", (req, res) => {
@@ -82,6 +87,6 @@ app.use(errorLogger);
 app.use(serverErrorHandler);
 
 // Start server and listen on the specific port
-app.listen(config.PORT, () => {
-    logger.info(`Server starts Listening on port ${config.PORT}`);
+app.listen(PORT, () => {
+    logger.info(`Server starts Listening on port ${PORT}`);
 });

@@ -1,6 +1,6 @@
 // Bring in strategy(s) and config
 const jwtStrategy = require("./jwtStrategy.js"),
-    config = require("../config/serverConfig.js");
+    { JWT_AUTH_OPTIONS } = require("../config/serverConfig.js");
 
 // Bring in passport
 const passport = require("passport");
@@ -17,6 +17,6 @@ module.exports = {
 
     // jwt authenticate
     jwtAuth: () => {
-        return passport.authenticate("jwt", config.jwtAuthOptions);
+        return passport.authenticate("jwt", JWT_AUTH_OPTIONS);
     }
 };

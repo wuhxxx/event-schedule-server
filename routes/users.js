@@ -3,7 +3,10 @@ const express = require("express"),
     bcrypt = require("bcryptjs"),
     jwt = require("jsonwebtoken"),
     succeed = require("../util/responseBuilder.js").successResponse,
-    { JWTSecretOrKey, tokenExpiresIn } = require("../config/serverConfig.js");
+    {
+        JWT_SECRET_OR_KEY,
+        TOKEN_EXPIRES_IN
+    } = require("../config/serverConfig.js");
 
 // Load User and Event model
 const User = require("../models/User.js"),
@@ -64,12 +67,12 @@ router.post("/signup", async (req, res, next) => {
         const savedUser = await newUser.save();
 
         // token expires in
-        const expiresIn = tokenExpiresIn;
+        const expiresIn = TOKEN_EXPIRES_IN;
 
         // assign jwt token, payload includes user's id,
         // must use '.id' to access generated user id
         const jwt_payload = { id: savedUser.id };
-        const token = await jwt.sign(jwt_payload, JWTSecretOrKey, {
+        const token = await jwt.sign(jwt_payload, JWT_SECRET_OR_KEY, {
             expiresIn
         });
 
@@ -113,12 +116,12 @@ router.post("/login", async (req, res, next) => {
         if (!isMatch) throw new WrongPassword();
 
         // token expires in
-        const expiresIn = tokenExpiresIn;
+        const expiresIn = TOKEN_EXPIRES_IN;
 
         // assign jwt token, payload includes user's id,
         // must use '.id' to access generated user id
         const jwt_payload = { id: user.id };
-        const token = await jwt.sign(jwt_payload, JWTSecretOrKey, {
+        const token = await jwt.sign(jwt_payload, JWT_SECRET_OR_KEY, {
             expiresIn
         });
 
@@ -154,14 +157,12 @@ router.delete("/", async (req, res, next) => {
         await User.deleteOne({ _id: userToDelete._id });
 
         // response
-        return res
-            .status(200)
-            .json(
-                succeed({
-                    deletedUser: userToDelete.email,
-                    deletedEventsId: eventsToDelete
-                })
-            );
+        return res.status(200).json(
+            succeed({
+                deletedUser: userToDelete.email,
+                deletedEventsId: eventsToDelete
+            })
+        );
     } catch (error) {
         next(error);
     }
