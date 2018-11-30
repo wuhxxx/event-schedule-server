@@ -1,7 +1,7 @@
 // Load dependencies
 const express = require("express"),
     auth = require("../auth/auth.js"),
-    responseBuilder = require("../util/responseBuilder.js");
+    succeed = require("../util/responseBuilder.js").successResponse;
 
 // Load User and Event model
 const User = require("../models/User.js"),
@@ -23,7 +23,7 @@ const router = express.Router();
  * Get all events of the corresponding user specified in jwt payload.
  *
  * @method     GET
- * @endpoint   event/all
+ * @endpoint   /all
  * @access     Private
  * @returns    An array of event objects (response.data.events)
  */
@@ -34,7 +34,7 @@ router.get("/all", auth.jwtAuth(), async (req, res, next) => {
             .populate("events", "-createDate")
             .select("events");
 
-        return res.status(200).json(responseBuilder.successResponse(events));
+        return res.status(200).json(succeed(events));
     } catch (error) {
         next(error);
     }
@@ -49,11 +49,11 @@ router.get("/all", auth.jwtAuth(), async (req, res, next) => {
  *   - weekday (number)
  *
  * @method     POST
- * @endpoint   event/add
+ * @endpoint   /
  * @access     Private
  * @returns    The eventId of the newly added event (response.data.eventId)
  */
-router.post("/add", auth.jwtAuth(), async (req, res, next) => {
+router.post("/", auth.jwtAuth(), async (req, res, next) => {
     try {
         // validate req.body
         await Joi.validate(req.body, newEventSchema);
@@ -70,9 +70,7 @@ router.post("/add", auth.jwtAuth(), async (req, res, next) => {
         );
 
         // response
-        return res
-            .status(200)
-            .json(responseBuilder.successResponse({ eventId: event.id }));
+        return res.status(200).json(succeed({ eventId: event.id }));
     } catch (error) {
         next(error);
     }
@@ -83,12 +81,12 @@ router.post("/add", auth.jwtAuth(), async (req, res, next) => {
  * An array of event's id is required in req.body:
  *   - eventIds (Array of event id, which is a 24-character string)
  *
- * @method     POST
- * @endpoint   event/delete
+ * @method     DELETE
+ * @endpoint   /
  * @access     Private
  * @returns    An array of event ids which are deleted (response.data.deletedEventsId)
  */
-router.post("/delete", auth.jwtAuth(), async (req, res, next) => {
+router.delete("/", auth.jwtAuth(), async (req, res, next) => {
     try {
         // validation
         await Joi.validate(req.body, removeEventSchema);
@@ -106,11 +104,7 @@ router.post("/delete", auth.jwtAuth(), async (req, res, next) => {
         await Event.deleteMany({ _id: { $in: intersection } });
 
         // response
-        return res.status(200).json(
-            responseBuilder.successResponse({
-                deletedEventsId: intersection
-            })
-        );
+        return res.status(200).json(succeed({ deletedEventsId: intersection }));
     } catch (error) {
         next(error);
     }
@@ -123,12 +117,12 @@ router.post("/delete", auth.jwtAuth(), async (req, res, next) => {
  *   - data (Object)
  *   An empty data object makes event unchange
  *
- * @method     POST
- * @endpoint   event/update
+ * @method     PATCH
+ * @endpoint   /:id
  * @access     Private
  * @returns    The updated event's id
  */
-router.post("/update", auth.jwtAuth(), async (req, res, next) => {
+router.patch("/:id", auth.jwtAuth(), async (req, res, next) => {
     try {
         // validation
         await Joi.validate(req.body, updateEventSchema);
@@ -140,19 +134,15 @@ router.post("/update", auth.jwtAuth(), async (req, res, next) => {
                 : req.body.data;
 
         // check if the event id is in this user's document
+        const idToUpdate = req.params.id;
         const user = await User.findById(req.user._id);
-        if (user.events.indexOf(req.body.eventId) === -1)
-            throw new EventNotFound();
+        if (user.events.indexOf(idToUpdate) === -1) throw new EventNotFound();
 
         // find and update
-        await Event.findByIdAndUpdate(req.body.eventId, { $set: data });
+        await Event.findByIdAndUpdate(idToUpdate, { $set: data });
 
         // response
-        return res.status(200).json(
-            responseBuilder.successResponse({
-                updatedEventId: req.body.eventId
-            })
-        );
+        return res.status(200).json(succeed({ updatedEventId: idToUpdate }));
     } catch (error) {
         next(error);
     }

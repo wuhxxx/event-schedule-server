@@ -2,17 +2,18 @@
 const express = require("express"),
     bcrypt = require("bcryptjs"),
     jwt = require("jsonwebtoken"),
-    responseBuilder = require("../util/responseBuilder.js"),
+    succeed = require("../util/responseBuilder.js").successResponse,
     { JWTSecretOrKey, tokenExpiresIn } = require("../config/serverConfig.js");
 
 // Load User and Event model
-const User = require("../models/User.js");
-require("../models/Event.js"); // require for User model to reference
+const User = require("../models/User.js"),
+    Event = require("../models/Event.js");
 
 // Load joi validator and validation schema
 const Joi = require("joi"),
     newUserSchema = require("../validation/newUser.js"),
-    loginSchema = require("../validation/login.js");
+    loginSchema = require("../validation/login.js"),
+    removeUserSchema = require("../validation/removeUser.js");
 
 // Load error type
 const {
@@ -32,7 +33,7 @@ const router = express.Router();
  *   - password (String), 4-30 length, ^[a-zA-Z0-9!@#$%^&]{4,30}$
  *
  * @method     POST
- * @endpoint   user/signup
+ * @endpoint   /signup
  * @access     Public
  * @returns    Jwt token (response.data.token) and user's name (response.data.name)
  */
@@ -74,9 +75,7 @@ router.post("/signup", async (req, res, next) => {
 
         // send jwt token, username and expiresIn back
         const name = savedUser.name;
-        return res
-            .status(200)
-            .json(responseBuilder.successResponse({ token, name, expiresIn }));
+        return res.status(200).json(succeed({ token, name, expiresIn }));
     } catch (error) {
         next(error);
     }
@@ -89,7 +88,7 @@ router.post("/signup", async (req, res, next) => {
  *   - password (String)
  *
  * @method     POST
- * @endpoint   user/login
+ * @endpoint   /login
  * @access     Public
  * @returns    Jwt token (response.data.token) and user's name (response.data.name)
  */
@@ -125,9 +124,44 @@ router.post("/login", async (req, res, next) => {
 
         // send jwt token, username and expiresIn back
         const name = user.name;
+        return res.status(200).json(succeed({ token, name, expiresIn }));
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * Delete user and user's events in database
+ *
+ * @method     DELETE
+ * @endpoint   /
+ * @access     Public
+ * @returns    ok or error
+ */
+router.delete("/", async (req, res, next) => {
+    try {
+        // validation
+        await Joi.validate(req.body, removeUserSchema);
+
+        // find user and user's events
+        const userArray = await User.find({ email: req.body.email }).limit(1);
+        if (userArray.length === 0) throw new UserNotFound();
+        const userToDelete = userArray[0];
+        const eventsToDelete = userToDelete.events;
+
+        // delete in database
+        await Event.deleteMany({ _id: { $in: eventsToDelete } });
+        await User.deleteOne({ _id: userToDelete._id });
+
+        // response
         return res
             .status(200)
-            .json(responseBuilder.successResponse({ token, name, expiresIn }));
+            .json(
+                succeed({
+                    deletedUser: userToDelete.email,
+                    deletedEventsId: eventsToDelete
+                })
+            );
     } catch (error) {
         next(error);
     }

@@ -14,8 +14,8 @@ const config = require("./config/serverConfig.js");
 const databaseCleaner = require("./util/databaseCleaner.js");
 
 // Bring in routes
-const userRouter = require("./routes/user.js"),
-    eventRouter = require("./routes/event.js");
+const userRouter = require("./routes/users.js"),
+    eventRouter = require("./routes/events.js");
 
 // Bring in error handlers
 const {
@@ -63,8 +63,8 @@ mongoose
 app.use(requestLogger);
 
 // use routes
-app.use("api/v1/user", userRouter);
-app.use("api/v1/event", eventRouter);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/events", eventRouter);
 
 // wildcard routing
 app.all("*", (req, res) => {
