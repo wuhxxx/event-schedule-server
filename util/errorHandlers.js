@@ -3,7 +3,7 @@
 // errors in errorTypes.js and other server errors.
 
 // Load util
-const responseBuilder = require("./responseBuilder.js"),
+const errorRes = require("./responseBuilder.js").errorResponse,
     {
         EmailRegistered,
         UserNotFound,
@@ -16,12 +16,12 @@ const responseBuilder = require("./responseBuilder.js"),
  *   Handle joi validation error
  */
 const validationErrorHandler = (err, req, res, next) => {
-    if (err.isJoi)
-        return res
-            .status(400)
-            .json(responseBuilder.errorResponse(400, err.details[0].message));
-    // pass other errors to sequential error handler middlewares
-    else next(err);
+    if (err.isJoi) {
+        const { message } = err.details[0];
+        return res.status(400).json(errorRes(400, err.name, message));
+    } else {
+        next(err);
+    }
 };
 
 /**
@@ -33,20 +33,20 @@ const userErrorHandler = (err, req, res, next) => {
     const statusCode = err.statusCode;
     // switch statement uses strict comparison '==='
     switch (err.name) {
-        case EmailRegistered.typeName:
+        case EmailRegistered.errorName:
             return res
                 .status(statusCode)
-                .json(responseBuilder.errorResponse(statusCode, err.message));
+                .json(errorRes(statusCode, err.name, err.message));
 
-        case UserNotFound.typeName:
+        case UserNotFound.errorName:
             return res
                 .status(statusCode)
-                .json(responseBuilder.errorResponse(statusCode, err.message));
+                .json(errorRes(statusCode, err.name, err.message));
 
-        case WrongPassword.typeName:
+        case WrongPassword.errorName:
             return res
                 .status(statusCode)
-                .json(responseBuilder.errorResponse(statusCode, err.message));
+                .json(errorRes(statusCode, err.name, err.message));
 
         default:
             next(err);
@@ -62,10 +62,10 @@ const eventErrorHandler = (err, req, res, next) => {
     const statusCode = err.statusCode;
     // switch statement uses strict comparison '==='
     switch (err.name) {
-        case EventNotFound.typeName:
+        case EventNotFound.errorName:
             return res
                 .status(statusCode)
-                .json(responseBuilder.errorResponse(statusCode, err.message));
+                .json(errorRes(statusCode, err.name, err.message));
 
         default:
             next(err);
@@ -78,10 +78,9 @@ const eventErrorHandler = (err, req, res, next) => {
  *   these errors can be unexpected, right now, just return internal sever error
  */
 const serverErrorHandler = (err, req, res) => {
-    return res
-        .status(500)
-        .json(responseBuilder.errorResponse(500, err.message));
+    return res.status(500).json(errorRes(500, err.name, err.message));
 };
+
 module.exports = {
     validationErrorHandler,
     userErrorHandler,
