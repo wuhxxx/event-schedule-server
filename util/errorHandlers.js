@@ -5,11 +5,33 @@
 // Load util
 const errorRes = require("./responseBuilder.js").errorResponse,
     {
+        Unauthorized,
+        InvalidToken,
         EmailRegistered,
         UserNotFound,
         WrongPassword,
         EventNotFound
     } = require("./errorTypes.js");
+
+/**
+ * Authentication error handler middleware
+ *  Handle auth error thrown from passport.js
+ */
+const authErrorHnalder = (err, req, res, next) => {
+    const statusCode = err.statusCode;
+    switch (err.name) {
+        case Unauthorized.errorName:
+            return res
+                .status(statusCode)
+                .json(errorRes(statusCode, err.name, err.message));
+        case InvalidToken.errorName:
+            return res
+                .status(statusCode)
+                .json(errorRes(statusCode, err.name, err.message));
+        default:
+            next(err);
+    }
+};
 
 /**
  * Validation error handler middleware
@@ -82,6 +104,7 @@ const serverErrorHandler = (err, req, res) => {
 };
 
 module.exports = {
+    authErrorHnalder,
     validationErrorHandler,
     userErrorHandler,
     eventErrorHandler,

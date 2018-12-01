@@ -24,6 +24,7 @@ const userRouter = require("./routes/users.js"),
 
 // Bring in error handlers
 const {
+    authErrorHnalder,
     validationErrorHandler,
     userErrorHandler,
     eventErrorHandler,
@@ -73,13 +74,21 @@ app.use(`${BASE_API_ROUTE}/events`, eventRouter);
 
 // wildcard routing
 app.all("*", (req, res) => {
-    res.status(404).send("<h1>URL not found</h1>");
+    res.status(404).json({
+        error: {
+            code: 404,
+            name: "ResourceNotFound",
+            message:
+                "The resource or url you are requesting does not exist or is not implemented in this API server, please check your url."
+        }
+    });
 });
 
 // use logger helper
 app.use(loggerHelper);
 
 // use error handlers and error logger, server error handler should be in the last
+app.use(authErrorHnalder);
 app.use(validationErrorHandler);
 app.use(userErrorHandler);
 app.use(eventErrorHandler);

@@ -1,18 +1,19 @@
 // User model and server config
 const User = require("../models/User.js"),
-    config = require("../config/serverConfig.js"),
+    { JWT_SECRET_OR_KEY } = require("../config/serverConfig.js"),
     JwtStrategy = require("passport-jwt").Strategy,
-    ExtractJwt = require("passport-jwt").ExtractJwt;
+    ExtractJwt = require("passport-jwt").ExtractJwt,
+    logger = require("../util/loggers.js").logger;
 
 // JwtStrategy options
 const options = {
     // extract jwt token with bearer scheme
-    // means token will be sent in request header in a field called "Authorization", ex:
-    // Authorization: "Bearer yJhbGciOiJIUzINisInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NT"
+    // means token will be sent in request header in a field called "Authorization",
+    // i.e.: Authorization: "Bearer yJhbGciOiJIUzNisInIkpXVCJ9.eyJzdWIiiIxMj0NT"
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 
     // secret or key
-    secretOrKey: config.JWTSecretOrKey
+    secretOrKey: JWT_SECRET_OR_KEY
 };
 
 // Expoese the jwt strategy
@@ -29,8 +30,7 @@ module.exports = new JwtStrategy(options, (jwt_payload, done) => {
             }
         })
         .catch(err => {
-            // TODO: use logger
-            console.log(err);
+            logger.error(err);
             return done(err, false);
         });
 });

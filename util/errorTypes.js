@@ -46,6 +46,18 @@ const ErrorType = (errorName, statusCode, defaultMessage) => {
 
 // Define and expose errors
 module.exports = {
+    // authentication errors
+    Unauthorized: ErrorType(
+        "Unauthorized",
+        401,
+        "No auth token. Provide your auth token by setting 'Authorization' header"
+    ),
+    InvalidToken: ErrorType(
+        "InvalidToken",
+        401,
+        "The provided auth token is invalid"
+    ),
+
     // user errors
     EmailRegistered: ErrorType(
         "EmailRegistered",
