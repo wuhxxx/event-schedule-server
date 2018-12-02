@@ -1,8 +1,8 @@
 const Joi = require("joi");
 
-// "name", "email" and "password" are required for registration
+// "username", "email" and "password" are required for registration
 module.exports = Joi.object().keys({
-    name: Joi.string()
+    username: Joi.string()
         .required()
         .regex(/^(?=.{2,12}$)(?![.\s])[a-zA-Z0-9._\s]+(?<![.\s])$/),
     email: Joi.string()

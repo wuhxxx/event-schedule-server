@@ -31,14 +31,14 @@ const router = express.Router();
 /**
  * Register new user.
  * Required fileds in req.body:
- *   - name (String), client side browser displays this in top bar
+ *   - username (String), client side browser displays this in top bar
  *   - email (String), user indentifier, unique
  *   - password (String), 4-30 length, ^[a-zA-Z0-9!@#$%^&]{4,30}$
  *
  * @method     POST
  * @endpoint   /signup
  * @access     Public
- * @returns    Jwt token (response.data.token) and user's name (response.data.name)
+ * @returns    Jwt token(response.data.token), username(response.data.username) and token expire time(response.data.expiresIn)
  */
 router.post("/signup", async (req, res, next) => {
     try {
@@ -56,7 +56,7 @@ router.post("/signup", async (req, res, next) => {
 
         // new user
         const newUser = new User({
-            name: req.body.name,
+            username: req.body.username,
             email: req.body.email
         });
 
@@ -77,8 +77,8 @@ router.post("/signup", async (req, res, next) => {
         });
 
         // send jwt token, username and expiresIn back
-        const name = savedUser.name;
-        return res.status(200).json(succeed({ token, name, expiresIn }));
+        const username = savedUser.username;
+        return res.status(200).json(succeed({ token, username, expiresIn }));
     } catch (error) {
         next(error);
     }
@@ -93,7 +93,7 @@ router.post("/signup", async (req, res, next) => {
  * @method     POST
  * @endpoint   /login
  * @access     Public
- * @returns    Jwt token (response.data.token) and user's name (response.data.name)
+ * @returns    Jwt token(response.data.token), username(response.data.username) and token expire time(response.data.expiresIn)
  */
 router.post("/login", async (req, res, next) => {
     try {
@@ -126,8 +126,8 @@ router.post("/login", async (req, res, next) => {
         });
 
         // send jwt token, username and expiresIn back
-        const name = user.name;
-        return res.status(200).json(succeed({ token, name, expiresIn }));
+        const username = user.username;
+        return res.status(200).json(succeed({ token, username, expiresIn }));
     } catch (error) {
         next(error);
     }
