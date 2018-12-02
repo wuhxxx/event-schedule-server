@@ -27,8 +27,7 @@ const {
     authErrorHnalder,
     validationErrorHandler,
     userErrorHandler,
-    eventErrorHandler,
-    serverErrorHandler
+    eventErrorHandler
 } = require("./util/errorHandlers.js");
 
 // Bring in loggers
@@ -78,6 +77,8 @@ app.all("*", (req, res) => {
         error: {
             code: 404,
             name: "ResourceNotFound",
+            requestUrl: req.originalUrl,
+            method: req.method,
             message:
                 "The resource or url you are requesting does not exist or is not implemented in this API server, please check your url."
         }
@@ -87,13 +88,12 @@ app.all("*", (req, res) => {
 // use logger helper
 app.use(loggerHelper);
 
-// use error handlers and error logger, server error handler should be in the last
+// use error handlers and error logger
 app.use(authErrorHnalder);
 app.use(validationErrorHandler);
 app.use(userErrorHandler);
 app.use(eventErrorHandler);
 app.use(errorLogger);
-app.use(serverErrorHandler);
 
 // Start server and listen on the specific port
 app.listen(PORT, () => {

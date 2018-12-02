@@ -38,6 +38,8 @@ module.exports = {
                             next(new InvalidToken());
                         else next(new Unauthorized());
                     } else {
+                        // user will be attached to req
+                        // access by req.user
                         req.user = user;
                         next();
                     }

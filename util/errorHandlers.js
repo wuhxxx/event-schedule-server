@@ -98,15 +98,17 @@ const eventErrorHandler = (err, req, res, next) => {
  * Server error handler middleware
  *   Handle all errors other than above errors
  *   these errors can be unexpected, right now, just return internal sever error
+ *   ! when internal server error occurs, this middleware will not be reached,
+ *   ! express handles server error itself.
  */
-const serverErrorHandler = (err, req, res) => {
-    return res.status(500).json(errorRes(500, err.name, err.message));
-};
+// const serverErrorHandler = (err, req, res) => {
+//     return res.status(500).json(errorRes(500, err.name, err.message));
+// };
 
 module.exports = {
     authErrorHnalder,
     validationErrorHandler,
     userErrorHandler,
-    eventErrorHandler,
-    serverErrorHandler
+    eventErrorHandler
+    // serverErrorHandler
 };
