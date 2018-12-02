@@ -2,8 +2,7 @@
 const User = require("../models/User.js"),
     { JWT_SECRET_OR_KEY } = require("../config/serverConfig.js"),
     JwtStrategy = require("passport-jwt").Strategy,
-    ExtractJwt = require("passport-jwt").ExtractJwt,
-    logger = require("../util/loggers.js").logger;
+    ExtractJwt = require("passport-jwt").ExtractJwt;
 
 // JwtStrategy options
 const options = {
@@ -17,20 +16,18 @@ const options = {
 };
 
 // Expoese the jwt strategy
-module.exports = new JwtStrategy(options, (jwt_payload, done) => {
+module.exports = new JwtStrategy(options, (jwtPayload, done) => {
     // fix: findOne -> findById
-    User.findById(jwt_payload.id)
+    User.findById(jwtPayload.id)
+        .populate("events", "-createDate")
         .then(user => {
             if (user) {
-                // user will be attached to req
-                // access by req.user
                 return done(null, user);
             } else {
                 return done(null, false);
             }
         })
         .catch(err => {
-            logger.error(err);
             return done(err, false);
         });
 });

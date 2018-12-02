@@ -4,8 +4,8 @@ const express = require("express"),
     succeed = require("../util/responseBuilder.js").successResponse;
 
 // Load User and Event model
-const User = require("../models/User.js"),
-    Event = require("../models/Event.js");
+const Event = require("../models/Event.js");
+// User = require("../models/User.js"),
 
 // Load joi validator and validation schema
 const Joi = require("joi"),
@@ -29,12 +29,11 @@ const router = express.Router();
  */
 router.get("/all", auth.jwtAuth(), async (req, res, next) => {
     try {
-        // console.dir(req.user);
-        const events = await User.findById(req.user._id)
-            .populate("events", "-createDate")
-            .select("events");
+        // console.log(req.user);
+        // get events
+        const events = req.user.events;
 
-        return res.status(200).json(succeed(events));
+        return res.status(200).json(succeed({ events }));
     } catch (error) {
         next(error);
     }
@@ -61,10 +60,9 @@ router.post("/", auth.jwtAuth(), async (req, res, next) => {
         // save event and get id
         const event = await new Event(req.body).save();
 
-        // find user document and update
-        await User.findByIdAndUpdate(
-            req.user._id,
-            // must use '.id' to access generated event id
+        // get user document and update
+        const userDoc = req.user;
+        await userDoc.updateOne(
             { $push: { events: event.id } },
             { safe: true, upsert: true }
         );
@@ -91,16 +89,31 @@ router.delete("/", auth.jwtAuth(), async (req, res, next) => {
         // validation
         await Joi.validate(req.body, removeEventSchema);
 
-        // find corresponding user
-        const user = await User.findById(req.user._id);
+        // get user document and events
+        const userDoc = req.user;
+        const userEvents = userDoc.events;
+        // map(event => {
+        // call toObject() first so virtual field eventId is set
+        // value of eventId is obejct, convert to string for filtering.
+        // console.log(typeof event.toObject().eventId[0]); // object
+        // console.log(typeof req.body.eventIds[0]); // string
+        // return event.toObject().eventId.toString();
+        // });
+
+        const userEventsMap = {};
+        let eventId;
+        for (let i = 0; i < userEvents.length; i++) {
+            eventId = userEvents[i].toObject().eventId.toString();
+            userEventsMap[eventId] = true;
+        }
 
         // filter out events which does not belong to this user
         const intersection = req.body.eventIds.filter(
-            eventid => user.events.indexOf(eventid) !== -1
+            eventid => userEventsMap[eventid]
         );
 
         // remove events from user's events array and Events collection
-        await user.updateOne({ $pullAll: { events: intersection } });
+        await userDoc.updateOne({ $pullAll: { events: intersection } });
         await Event.deleteMany({ _id: { $in: intersection } });
 
         // response
@@ -135,8 +148,10 @@ router.patch("/:id", auth.jwtAuth(), async (req, res, next) => {
 
         // check if the event id is in this user's document
         const idToUpdate = req.params.id;
-        const user = await User.findById(req.user._id);
-        if (user.events.indexOf(idToUpdate) === -1) throw new EventNotFound();
+        const paramsIdExists = req.user.events.find(
+            event => event.toObject().eventId.toString() === idToUpdate
+        );
+        if (!paramsIdExists) throw new EventNotFound();
 
         // find and update
         await Event.findByIdAndUpdate(idToUpdate, { $set: data });
