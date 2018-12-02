@@ -44,26 +44,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(auth.initialize());
 
-// Connect to MongoDB
-// get rid of "collection.ensureIndex" DeprecationWarning
-mongoose.set("useCreateIndex", true);
-// get rid of "collection.findAndModify" DeprecationWarning
-mongoose.set("useFindAndModify", false);
-mongoose
-    .connect(
-        MONGODB_URL,
-        { useNewUrlParser: true }
-    )
-    .then(() => logger.info("DB connected!"))
-    .then(() => {
-        if (process.env.DATABASE_CLEANUP) {
-            // regularly clean up database
-            setInterval(databaseCleaner, REGULAR_CLEAN_INTERVAL);
-            logger.info("Database regularly cleaning up set.");
-        }
-    })
-    .catch(err => logger.error(err.toString(), { stack: err.stack }));
-
 // use logger
 app.use(requestLogger);
 
@@ -95,7 +75,28 @@ app.use(userErrorHandler);
 app.use(eventErrorHandler);
 app.use(errorLogger);
 
-// Start server and listen on the specific port
-app.listen(PORT, () => {
-    logger.info(`Server starts Listening on port ${PORT}`);
-});
+// Connect to MongoDB then start server
+// get rid of "collection.ensureIndex" DeprecationWarning
+mongoose.set("useCreateIndex", true);
+// get rid of "collection.findAndModify" DeprecationWarning
+mongoose.set("useFindAndModify", false);
+mongoose
+    .connect(
+        MONGODB_URL,
+        { useNewUrlParser: true }
+    )
+    .then(() => logger.info("DB connected!"))
+    .then(() => {
+        if (process.env.DATABASE_CLEANUP) {
+            // regularly clean up database
+            setInterval(databaseCleaner, REGULAR_CLEAN_INTERVAL);
+            logger.info("Database regularly cleaning up set.");
+        }
+    })
+    .then(() => {
+        // Start server and listen on the given port
+        app.listen(PORT, () => {
+            logger.info(`Server starts Listening on port ${PORT}`);
+        });
+    })
+    .catch(err => logger.error(err.toString(), { stack: err.stack }));
