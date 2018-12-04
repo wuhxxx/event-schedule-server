@@ -130,7 +130,25 @@ describe(`POST ${BASE_API_ROUTE}/events/`, () => {
             });
     });
 
-    it("Expect validation error when missing required field of an event", done => {
+    it("Expect status code 401 and InvalidToken error when using invalid token", done => {
+        const invalidToken = "invalidtoken0987654321";
+        api.post(`${BASE_API_ROUTE}/events`)
+            .set("Accept", "application/json")
+            .set("Authorization", `Bearer ${invalidToken}`)
+            .send(event)
+            .expect(401)
+            .end((err, res) => {
+                if (err) throw err;
+                expect(res.body).to.have.property("error");
+                expect(res.body.error).to.have.property("code");
+                expect(res.body.error).to.have.property("name");
+                expect(res.body.error).to.have.property("message");
+                expect(res.body.error.name).to.equal(InvalidToken.errorName);
+                done();
+            });
+    });
+
+    it("Expect stattus code 400 and validation error when missing required field of an event", done => {
         const eventMissingOneField = Object.assign({}, event);
         delete eventMissingOneField.weekday;
         api.post(`${BASE_API_ROUTE}/events`)
@@ -199,13 +217,65 @@ describe(`GET ${BASE_API_ROUTE}/events/all`, () => {
 });
 
 /** Update exisiting event */
-describe(`PATCH ${BASE_API_ROUTE}/events/${eventId}`, () => {
-    // it("Expect status code 200 as ");
+describe(`PATCH ${BASE_API_ROUTE}/events/:eventId`, () => {
+    it("Expect stattus code 400 and validation error as body for update includes unexpect field", done => {
+        const data = {};
+        data.unexpect = 1;
+        api.patch(`${BASE_API_ROUTE}/events/${eventId}`)
+            .set("Accept", "application/json")
+            .set("Authorization", `Bearer ${jwtToken}`)
+            .send({ data })
+            .expect(400)
+            .end((err, res) => {
+                if (err) throw err;
+                expect(res.body).to.have.property("error");
+                expect(res.body.error).to.have.property("code");
+                expect(res.body.error).to.have.property("name");
+                expect(res.body.error).to.have.property("message");
+                expect(res.body.error.name).to.equal("ValidationError");
+                done();
+            });
+    });
+
+    it("Expect status code 404 and EventNotFound error when requesting non-existing event", done => {
+        const nonExistEventId = "000000000000000000000000";
+        api.patch(`${BASE_API_ROUTE}/events/${nonExistEventId}`)
+            .set("Accept", "application/json")
+            .set("Authorization", `Bearer ${jwtToken}`)
+            .send({ data: {} })
+            .expect(404)
+            .end((err, res) => {
+                if (err) throw err;
+                expect(res.body).to.have.property("error");
+                expect(res.body.error).to.have.property("code");
+                expect(res.body.error).to.have.property("name");
+                expect(res.body.error).to.have.property("message");
+                expect(res.body.error.name).to.equal(EventNotFound.errorName);
+                done();
+            });
+    });
+
+    it("Expect a updated event object in response body as event be successfully updated", done => {
+        api.patch(`${BASE_API_ROUTE}/events/${eventId}`)
+            .set("Accept", "application/json")
+            .set("Authorization", `Bearer ${jwtToken}`)
+            .send({ data: { title: eventNewTitle } })
+            .expect(200)
+            .end((err, res) => {
+                if (err) throw err;
+                expect(res.body).to.have.property("data");
+                expect(res.body.data).to.have.property("updatedEvent");
+                expect(res.body.data.updatedEvent.title).to.equal(
+                    eventNewTitle
+                );
+                done();
+            });
+    });
 });
 
 /** Delete exisiting event */
 describe(`DELETE ${BASE_API_ROUTE}/events`, () => {
-    // it();
+    it("");
 });
 
 /** Delete user's account */
