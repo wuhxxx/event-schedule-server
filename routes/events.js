@@ -154,10 +154,14 @@ router.patch("/:id", auth.jwtAuth(), async (req, res, next) => {
         if (!paramsIdExists) throw new EventNotFound();
 
         // find and update
-        await Event.findByIdAndUpdate(idToUpdate, { $set: data });
+        const updatedEvent = await Event.findByIdAndUpdate(
+            idToUpdate,
+            { $set: data },
+            { new: true }
+        );
 
         // response
-        return res.status(200).json(succeed({ updatedEventId: idToUpdate }));
+        return res.status(200).json(succeed({ updatedEvent }));
     } catch (error) {
         next(error);
     }
