@@ -53,9 +53,20 @@ module.exports = {
         "No auth token. Provide your auth token by setting 'Authorization' header"
     ),
     InvalidToken: ErrorType(
-        "InvalidToken",
+        "JsonWebTokenError",
         401,
         "The provided auth token is invalid"
+    ),
+    TokenExpired: ErrorType(
+        "TokenExpiredError",
+        401,
+        "The provided auth token has expired"
+    ),
+    // this will happen if token is valid but user has been deleted from the database
+    DeletedUser: ErrorType(
+        "DeletedUser",
+        404,
+        "The auth token is valid, but the corresponding user has been deleted from the backend database"
     ),
 
     // user errors

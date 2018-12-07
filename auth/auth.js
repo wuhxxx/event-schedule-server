@@ -6,7 +6,12 @@ const jwtStrategy = require("./jwtStrategy.js"),
 const passport = require("passport");
 
 // Bring in auth related errors
-const { Unauthorized, InvalidToken } = require("../util/errorTypes.js");
+const {
+    Unauthorized,
+    InvalidToken,
+    TokenExpired,
+    DeletedUser
+} = require("../util/errorTypes.js");
 
 // Use strategy(s)
 passport.use(jwtStrategy);
@@ -34,9 +39,18 @@ module.exports = {
 
                     // console.log("info.name = ", info.name);
                     if (!user) {
-                        if (info && info.name === "JsonWebTokenError")
-                            next(new InvalidToken());
-                        else next(new Unauthorized());
+                        if (info) {
+                            // token has something wrong
+                            console.log(info);
+                            if (info.name === InvalidToken.errorName)
+                                next(new InvalidToken());
+                            else if (info.name === TokenExpired.errorName)
+                                next(new TokenExpired());
+                            else next(new Unauthorized());
+                        } else {
+                            // token is ok, but user can't be found in database
+                            next(new DeletedUser());
+                        }
                     } else {
                         // user will be attached to req
                         // access by req.user

@@ -7,6 +7,8 @@ const errorRes = require("./responseBuilder.js").errorResponse,
     {
         Unauthorized,
         InvalidToken,
+        TokenExpired,
+        DeletedUser,
         EmailRegistered,
         UserNotFound,
         WrongPassword,
@@ -25,6 +27,14 @@ const authErrorHnalder = (err, req, res, next) => {
                 .status(statusCode)
                 .json(errorRes(statusCode, err.name, err.message));
         case InvalidToken.errorName:
+            return res
+                .status(statusCode)
+                .json(errorRes(statusCode, err.name, err.message));
+        case TokenExpired.errorName:
+            return res
+                .status(statusCode)
+                .json(errorRes(statusCode, err.name, err.message));
+        case DeletedUser.errorName:
             return res
                 .status(statusCode)
                 .json(errorRes(statusCode, err.name, err.message));
