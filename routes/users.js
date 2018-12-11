@@ -139,7 +139,7 @@ router.post("/login", async (req, res, next) => {
  * @method     DELETE
  * @endpoint   /
  * @access     Public
- * @returns    ok or error
+ * @returns    the deleted user id and user's events id
  */
 router.delete("/", async (req, res, next) => {
     try {

@@ -42,10 +42,10 @@ const EventSchema = new mongoose.Schema({
     },
     // event's day of week
     weekday: {
-        // range [1,5], Monday to Friday
+        // range [0,4], Monday to Friday
         type: Number,
-        min: 1,
-        max: 5,
+        min: 0,
+        max: 4,
         required: true
     },
     // date of this event being created
