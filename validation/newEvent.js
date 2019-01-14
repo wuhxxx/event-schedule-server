@@ -2,8 +2,8 @@ const Joi = require("joi");
 
 module.exports = Joi.object().keys({
     title: Joi.string().required(),
-    location: Joi.string(),
-    description: Joi.string(),
+    location: Joi.string().allow(""),
+    description: Joi.string().allow(""),
     color: Joi.number()
         .min(0)
         .max(16777215) // decimal value of hex 0xFFFFFF

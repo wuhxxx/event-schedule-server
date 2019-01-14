@@ -18,6 +18,8 @@ const EventSchema = new mongoose.Schema({
     // event's color, decimal value of hex color number
     color: {
         type: Number,
+        min: 0,
+        max: 16777215, // decimal value of hex 0xFFFFFF
         required: true
     },
     // event's start time

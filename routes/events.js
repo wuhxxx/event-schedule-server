@@ -58,17 +58,17 @@ router.post("/", auth.jwtAuth(), async (req, res, next) => {
         await Joi.validate(req.body, newEventSchema);
 
         // save event and get id
-        const event = await new Event(req.body).save();
+        const savedEvent = await new Event(req.body).save();
 
         // get user document and update
         const userDoc = req.user;
         await userDoc.updateOne(
-            { $push: { events: event.id } },
+            { $push: { events: savedEvent.id } },
             { safe: true, upsert: true }
         );
 
         // response
-        return res.status(200).json(succeed({ eventId: event.id }));
+        return res.status(200).json(succeed({ savedEvent }));
     } catch (error) {
         next(error);
     }
@@ -92,18 +92,18 @@ router.delete("/", auth.jwtAuth(), async (req, res, next) => {
         // get user document and events
         const userDoc = req.user;
         const userEvents = userDoc.events;
-        // map(event => {
-        // call toObject() first so virtual field eventId is set
-        // value of eventId is obejct, convert to string for filtering.
-        // console.log(typeof event.toObject().eventId[0]); // object
-        // console.log(typeof req.body.eventIds[0]); // string
-        // return event.toObject().eventId.toString();
-        // });
 
+        // construct a hashmap for user's events
         const userEventsMap = {};
         let eventId;
         for (let i = 0; i < userEvents.length; i++) {
-            eventId = userEvents[i].toObject().eventId.toString();
+            // console.log(typeof event.toObject().eventId[0]); // object
+            // console.log(typeof req.body.eventIds[0]); // string
+            eventId = userEvents[i]
+                .toObject() // call toObject() first so virtual field eventId is set
+                .eventId // mongodb id is 'ObjectId' type
+                .toString(); // convert to string for comparing
+
             userEventsMap[eventId] = true;
         }
 
@@ -116,7 +116,7 @@ router.delete("/", auth.jwtAuth(), async (req, res, next) => {
         await userDoc.updateOne({ $pullAll: { events: intersection } });
         await Event.deleteMany({ _id: { $in: intersection } });
 
-        // response
+        // response, an array of ids of deleted event
         return res.status(200).json(succeed({ deletedEventsId: intersection }));
     } catch (error) {
         next(error);
