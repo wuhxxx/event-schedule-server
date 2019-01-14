@@ -57,9 +57,17 @@ const EventSchema = new mongoose.Schema({
     }
 });
 
-// Decorate the returned object when document.toObject() is called:
+// Decorate the returned object when document.toObject() and toJSON() is called,
 // replace field name "_id" with "eventId", and delete field "__v"
 EventSchema.set("toObject", {
+    transform: (document, returnObjcet) => {
+        returnObjcet.eventId = returnObjcet._id;
+        delete returnObjcet._id;
+        delete returnObjcet.__v;
+    }
+});
+
+EventSchema.set("toJSON", {
     transform: (document, returnObjcet) => {
         returnObjcet.eventId = returnObjcet._id;
         delete returnObjcet._id;
