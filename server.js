@@ -1,11 +1,14 @@
-// Load environment variables
-require("dotenv").config();
+// Load environment variables in development
+if (process.env.NODE_ENV === "development") {
+    require("dotenv").config();
+}
 
-// Bring in express, body parser, mongoose and passport authenticator
-const express = require("express"),
+// Bring in express, body parser, mongoose, path and passport authenticator
+const auth = require("./auth/auth.js"),
     bodyParser = require("body-parser"),
+    express = require("express"),
     mongoose = require("mongoose"),
-    auth = require("./auth/auth.js");
+    path = require("path");
 
 // Bring in server config
 const {
@@ -61,6 +64,12 @@ app.use(requestLogger);
 // use routes
 app.use(`${BASE_API_ROUTE}/users`, userRouter);
 app.use(`${BASE_API_ROUTE}/events`, eventRouter);
+
+// server client static build file
+app.use(express.static(path.join(__dirname, "client", "build")));
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+});
 
 // wildcard routing
 app.all("*", (req, res) => {

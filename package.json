@@ -1,10 +1,10 @@
 {
     "name": "event-schedule-server",
     "version": "1.0.0",
-    "description": "The backend of weekly-scheduler.",
+    "description": "The backend of event-schedule.",
     "main": "index.js",
     "scripts": {
-        "server": "node server.js",
+        "start": "node server.js",
         "dev-server": "nodemon server.js",
         "test": "mocha"
     },
